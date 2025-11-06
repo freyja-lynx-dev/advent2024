@@ -1,28 +1,18 @@
 import gleam/int
-import gleam/io
 import gleam/list
-import gleam/option.{type Option}
+import gleam/option
 import gleam/regexp
-import gleam/result
 
 pub type Mul {
   Mul(vals: #(Int, Int), res: Int)
 }
 
 fn make_mul_from_match(m: List(String)) -> Result(Mul, Nil) {
-  let nums = list.map(m, fn(x) { result.unwrap(int.parse(x), -1) })
+  let nums = list.map(m, int.parse)
 
   case nums {
-    // explicit failure case in case of invalid submatches, should never happen
-    // we want to catch this before the general pair case as guards aren't valid
-    // in gleam case expressions
-    //
-    // note: theoretically this might happen on an input with an int too large to
-    // represent, on javascript runtime, which we aren't using
-    [-1, -1] -> Error(Nil)
-    // valid pair of ints, make the mul
-    [a, b] -> Ok(Mul(vals: #(a, b), res: a * b))
-    // implicit failure case that should never happen
+    [Ok(a), Ok(b)] -> Ok(Mul(vals: #(a, b), res: a * b))
+    // if this happens, lol
     _ -> Error(Nil)
   }
 }
