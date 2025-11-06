@@ -16,7 +16,7 @@ pub fn total_distance_test() {
 }
 
 fn safe_check_test_data() -> List(List(Int)) {
-  let l = [
+  [
     // safe, all decreasing
     [7, 6, 4, 2, 1],
     // unsafe, 2->7 is 5
