@@ -1,3 +1,4 @@
+import advent2024/mem_corrupt
 import advent2024/safe_check
 import advent2024/total_dist
 import gleam/list
@@ -51,4 +52,11 @@ pub fn safe_check_differing_test() {
 pub fn safe_check_is_report_safe_test() {
   assert [True, False, False, False, False, True]
     == list.map(safe_check_test_data(), safe_check.is_report_safe)
+}
+
+pub fn mem_corrupt_test() {
+  let test_data =
+    "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))"
+
+  assert 161 == mem_corrupt.sum_muls_from(test_data)
 }
