@@ -2,6 +2,7 @@ import gleam/int
 import gleam/list
 import gleam/option
 import gleam/regexp
+import gleam/string
 import splitter
 
 pub type Mul {
@@ -51,8 +52,20 @@ pub fn remove_donts(m: String) -> String {
   }
 }
 
+pub fn remove_donts_stdlib(m: String) -> String {
+  case string.split_once(m, "don't()") {
+    Error(_) -> m
+    Ok(#(enabled_mem, rest)) -> {
+      case string.split_once(rest, "do()") {
+        Error(_) -> enabled_mem
+        Ok(#(_, rest)) -> enabled_mem <> remove_donts_stdlib(rest)
+      }
+    }
+  }
+}
+
 pub fn sum_do_muls_from(m: String) -> Int {
   // get only the muls after dos
-  remove_donts(m)
+  remove_donts_stdlib(m)
   |> sum_muls_from()
 }

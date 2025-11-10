@@ -68,3 +68,11 @@ pub fn remove_donts_test() {
   assert "xmul(2,4)&mul[3,7]!^do()?mul(8,5))"
     == mem_corrupt.remove_donts(test_data)
 }
+
+pub fn remove_donts_stdlib_test() {
+  let test_data =
+    "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))"
+
+  assert "xmul(2,4)&mul[3,7]!^?mul(8,5))"
+    == mem_corrupt.remove_donts_stdlib(test_data)
+}
