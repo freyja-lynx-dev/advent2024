@@ -8,5 +8,6 @@ pub fn main() -> Nil {
   safe_check.safe_check()
   let assert Ok(s) = simplifile.read("day3_data")
   echo mem_corrupt.sum_muls_from(s)
+  echo mem_corrupt.sum_do_muls_from(s)
   Nil
 }

@@ -2,6 +2,7 @@ import gleam/int
 import gleam/list
 import gleam/option
 import gleam/regexp
+import splitter
 
 pub type Mul {
   Mul(vals: #(Int, Int), res: Int)
@@ -31,4 +32,27 @@ fn recover_muls(m: String) -> List(Mul) {
 pub fn sum_muls_from(m: String) -> Int {
   recover_muls(m)
   |> list.fold(0, fn(acc, mul) { acc + mul.res })
+}
+
+// remove don'ts recursively
+pub fn remove_donts(m: String) -> String {
+  let dont_splitter = splitter.new(["don't()"])
+  let do_splitter = splitter.new(["do()"])
+
+  case splitter.split_before(dont_splitter, m) {
+    // if all the memory is enabled, we're done
+    #(enabled_mem, "") -> enabled_mem
+    // if not, discard all memory up to the next enablement
+    #(enabled_mem, rest) -> {
+      let #(_, rest) = splitter.split_before(do_splitter, rest)
+
+      enabled_mem <> remove_donts(rest)
+    }
+  }
+}
+
+pub fn sum_do_muls_from(m: String) -> Int {
+  // get only the muls after dos
+  remove_donts(m)
+  |> sum_muls_from()
 }
