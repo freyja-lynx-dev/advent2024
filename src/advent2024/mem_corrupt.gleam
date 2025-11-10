@@ -52,6 +52,7 @@ pub fn remove_donts(m: String) -> String {
   }
 }
 
+// this is the same approach as above, but avoids using the splitter library
 pub fn remove_donts_stdlib(m: String) -> String {
   case string.split_once(m, "don't()") {
     Error(_) -> m
