@@ -52,16 +52,18 @@ pub fn remove_donts(m: String) -> String {
   }
 }
 
-// this is the same approach as above, but avoids using the splitter library
+fn remove_until_do(rest: String) -> String {
+  case string.split_once(rest, "do()") {
+    Error(_) -> rest
+    Ok(#(_, rest)) -> remove_donts_stdlib(rest)
+  }
+}
+
+// delete disabled memory from input
 pub fn remove_donts_stdlib(m: String) -> String {
   case string.split_once(m, "don't()") {
     Error(_) -> m
-    Ok(#(enabled_mem, rest)) -> {
-      case string.split_once(rest, "do()") {
-        Error(_) -> enabled_mem
-        Ok(#(_, rest)) -> enabled_mem <> remove_donts_stdlib(rest)
-      }
-    }
+    Ok(#(enabled_mem, rest)) -> enabled_mem <> remove_until_do(rest)
   }
 }
 
