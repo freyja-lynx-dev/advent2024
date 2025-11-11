@@ -55,20 +55,52 @@ pub fn remove_donts(m: String) -> String {
 fn remove_until_do(rest: String) -> String {
   case string.split_once(rest, "do()") {
     Error(_) -> rest
-    Ok(#(_, rest)) -> remove_donts_stdlib(rest)
+    Ok(#(_, rest)) -> remove_donts_stdlib_murec(rest)
   }
 }
 
 // delete disabled memory from input
-pub fn remove_donts_stdlib(m: String) -> String {
+//
+// this function does not get to benefit from tail-call optimization
+// as it utilizes mutual recursion + concatenates lazily
+pub fn remove_donts_stdlib_murec(m: String) -> String {
   case string.split_once(m, "don't()") {
     Error(_) -> m
     Ok(#(enabled_mem, rest)) -> enabled_mem <> remove_until_do(rest)
   }
 }
 
+// this function should benefit from tail-call optimization
+// to accomplish this it eagerly concatenates, which... may or may not be bad
+// i'm not sure
+pub fn remove_donts_stdlib_tco(m: String) -> String {
+  case string.split_once(m, "don't()") {
+    Error(_) -> m
+    Ok(#(enabled_mem, rest)) -> {
+      case string.split_once(rest, "do()") {
+        Error(_) -> enabled_mem
+        Ok(#(_, rest)) -> remove_donts_stdlib_tco(enabled_mem <> rest)
+      }
+    }
+  }
+}
+
+// this function is not mutually recursive, but may not benefit from tco
+pub fn remove_donts_stdlib_non_tco_nor_murec(m: String) -> String {
+  case string.split_once(m, "don't()") {
+    Error(_) -> m
+    Ok(#(enabled_mem, rest)) -> {
+      case string.split_once(rest, "do()") {
+        Error(_) -> enabled_mem
+        Ok(#(_, rest)) ->
+          enabled_mem <> remove_donts_stdlib_non_tco_nor_murec(rest)
+      }
+    }
+  }
+}
+
 pub fn sum_do_muls_from(m: String) -> Int {
   // get only the muls after dos
-  remove_donts_stdlib(m)
+  remove_donts_stdlib_tco(m)
   |> sum_muls_from()
 }
