@@ -47,7 +47,8 @@ pub fn remove_donts(m: String) -> String {
     #(enabled_mem, rest) -> {
       let #(_, rest) = splitter.split_before(do_splitter, rest)
 
-      enabled_mem <> remove_donts(rest)
+      // this should be tc optimized
+      remove_donts(enabled_mem <> rest)
     }
   }
 }
