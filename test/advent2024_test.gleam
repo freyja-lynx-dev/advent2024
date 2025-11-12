@@ -1,6 +1,8 @@
+import advent2024/ceres_search.{Coordinate}
 import advent2024/mem_corrupt
 import advent2024/safe_check
 import advent2024/total_dist
+import gleam/dict
 import gleam/list
 import gleeunit
 
@@ -91,4 +93,42 @@ pub fn remove_donts_stdlib_tco_test() {
 
   assert "xmul(2,4)&mul[3,7]!^?mul(8,5))"
     == mem_corrupt.remove_donts_stdlib_tco(test_data)
+}
+
+fn ceres_search_data() -> String {
+  "MMMSXXMASM
+MSAMXMSMSA
+AMXSXMAAMM
+MSAMASMSMX
+XMASAMXAMM
+XXAMMXXAMA
+SMSMSASXSS
+SAXAMASAAA
+MAMMMXMMMM
+MXMXAXMASX"
+}
+
+pub fn string_to_coordinates_test() {
+  let row_data = "MMMSXXMASM"
+  let row =
+    dict.from_list([
+      #(Coordinate(0, 0), "M"),
+      #(Coordinate(1, 0), "M"),
+      #(Coordinate(2, 0), "M"),
+      #(Coordinate(3, 0), "S"),
+      #(Coordinate(4, 0), "X"),
+      #(Coordinate(5, 0), "X"),
+      #(Coordinate(6, 0), "M"),
+      #(Coordinate(7, 0), "A"),
+      #(Coordinate(8, 0), "S"),
+      #(Coordinate(9, 0), "M"),
+    ])
+
+  let constructed_row =
+    ceres_search.string_to_coordinates(0, 0, row_data, dict.new())
+  assert row == constructed_row
+}
+
+pub fn ceres_search_test() {
+  assert 18 == ceres_search.find_all_of_pattern(ceres_search_data(), "XMAS")
 }
