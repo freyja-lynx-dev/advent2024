@@ -3,8 +3,11 @@ import advent2024/mem_corrupt
 import advent2024/safe_check
 import advent2024/total_dist
 import gleam/dict
+import gleam/int
 import gleam/list
+import gleam/option
 import gleam/result
+import gleam/yielder
 import gleeunit
 
 pub fn main() -> Nil {
@@ -158,14 +161,51 @@ MSAMXMSMSA"
       #(Coordinate(9, 1), "A"),
     ])
   let grid = Grid(grid: parsed_rows, rows: 2, columns: 10)
+  let assembled_grid = ceres_search.make_grid_from(row_data)
 
-  assert grid
-    == result.unwrap(
-      ceres_search.make_grid_from(row_data),
-      Grid(dict.new(), 0, 0),
-    )
+  assert grid == result.unwrap(assembled_grid, Grid(dict.new(), 0, 0))
+}
+
+pub fn get_all_lines_for_grid_test() {
+  let data = ceres_search_data()
+  let assert Ok(grid) = ceres_search.make_grid_from(data)
+  // we can infer the amount of lines from
+  let total_lines =
+    // n+m - 1 unique diagonals
+    grid.rows + grid.columns
+    |> int.add(-1)
+    // both rising and falling diagonals
+    |> int.multiply(2)
+    // plus horizontal lines (rows)
+    |> int.add(grid.rows)
+    // plus vertical lines (columns)
+    |> int.add(grid.columns)
+
+  // check our math with a worked out paper example
+  assert 58 == total_lines
+
+  let #(h, v, df, dr) = ceres_search.get_all_lines_for_grid(grid)
+
+  // you might wonder: shouldn't we ensure the lines are what we expect
+  // oh, but you poor thing myself, we're going to test line generation
+  // in another unit test. so we don't need to double check our work.
+  let lengths = [
+    yielder.length(h),
+    yielder.length(v),
+    yielder.length(df),
+    yielder.length(dr),
+  ]
+
+  assert [10, 10, 19, 19] == lengths
+
+  // we should yield all 58 lines from our four generators altogether
+  assert total_lines == list.fold(lengths, 0, fn(acc, x) { acc + x })
 }
 
 pub fn ceres_search_test() {
-  assert 18 == ceres_search.find_all_of_pattern(ceres_search_data(), "XMAS")
+  assert 18
+    == option.unwrap(
+      ceres_search.find_all_of_pattern(ceres_search_data(), "XMAS"),
+      0,
+    )
 }
