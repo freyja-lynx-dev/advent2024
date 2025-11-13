@@ -48,22 +48,22 @@ pub fn string_to_coordinates(
   }
 }
 
-fn merge_dicts_from_list(l: List(Dict(a, b))) -> Dict(a, b) {
+// Creates a dict by merging all dicts in the given list
+fn merge_dicts_from(l: List(Dict(a, b))) -> Dict(a, b) {
   list.fold(over: l, from: dict.new(), with: fn(acc, x) { dict.merge(acc, x) })
 }
 
-fn try_to_make_grid(
-  d: List(#(Int, Dict(Coordinate, String))),
+// Attempts to make a grid, failing if rows are not evenly sized
+fn try_grid_assemble(
+  from: List(#(Int, Dict(Coordinate, String))),
 ) -> Result(Grid, Nil) {
-  // we get a list of coordinate rows
-  // as long as each row has the same number of elements, it's valid
-  // grids in our case should only be full rectangles 
-  let #(sizes, dicts) = list.unzip(d)
+  let #(sizes, dicts) = list.unzip(from)
+
   case list.unique(sizes) {
     // if we only get one unique size, all the rows are the same size
     [row_length] -> {
       Ok(Grid(
-        grid: merge_dicts_from_list(dicts),
+        grid: merge_dicts_from(dicts),
         columns: row_length,
         rows: list.length(dicts),
       ))
@@ -73,16 +73,17 @@ fn try_to_make_grid(
   }
 }
 
-pub fn make_grid_from(i: String) -> Result(Grid, Nil) {
-  echo i
-  string.split(i, on: "\n")
-  |> echo
-  // transform each row into a #(size_of_dict, dict)
+// 
+pub fn make_grid_from(input: String) -> Result(Grid, Nil) {
+  string.split(input, on: "\n")
   |> list.index_map(with: fn(row, y) {
+    // transform each row into a #(size_of_dict, dict)
     let row_dict = string_to_coordinates(0, y, row, dict.new())
-    #(dict.size(row_dict), row_dict)
+    let size_of_dict = dict.size(row_dict)
+
+    #(size_of_dict, row_dict)
   })
-  |> try_to_make_grid()
+  |> try_grid_assemble()
 }
 
 pub fn find_all_of_pattern(s: String, pattern: String) -> Int {
