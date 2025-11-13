@@ -1,5 +1,6 @@
 import gleam/dict.{type Dict}
 import gleam/list
+import gleam/result
 import gleam/string
 
 pub type Pattern {
@@ -15,7 +16,7 @@ pub type Instance {
 }
 
 pub type Grid {
-  Grid(grid: #(Coordinate, String))
+  Grid(grid: Dict(Coordinate, String))
 }
 
 // we treat a string as a row of letters
@@ -47,13 +48,39 @@ pub fn string_to_coordinates(
   }
 }
 
+fn try_to_make_grid(
+  d: List(#(Int, Dict(Coordinate, String))),
+) -> Result(Grid, Nil) {
+  // we get a list of coordinate rows
+  // as long as each row has the same number of elements, it's valid
+  // grids in our case should only be full rectangles 
+  let #(sizes, dicts) = list.unzip(d)
+  case list.unique(sizes) {
+    // if we only get one unique size, all the rows are the same size
+    [_all_same_size] -> {
+      Ok(
+        Grid(
+          list.fold(over: dicts, from: dict.new(), with: fn(acc, x) {
+            dict.merge(acc, x)
+          }),
+        ),
+      )
+    }
+    // otherwise, we don't have a proper grid
+    _ -> Error(Nil)
+  }
+}
+
 pub fn make_grid_from(i: String) -> Result(Grid, Nil) {
-  string.split("\n", on: i)
-  // transform each row into a dict
-  // then verify each row is the same length
-  // then make it into a grid
-  |> list.map(fn(x) { todo })
-  Error(Nil)
+  echo i
+  string.split(i, on: "\n")
+  |> echo
+  // transform each row into a #(size_of_dict, dict)
+  |> list.index_map(with: fn(row, y) {
+    let row_dict = string_to_coordinates(0, y, row, dict.new())
+    #(dict.size(row_dict), row_dict)
+  })
+  |> try_to_make_grid()
 }
 
 pub fn find_all_of_pattern(s: String, pattern: String) -> Int {
