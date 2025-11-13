@@ -16,7 +16,7 @@ pub type Instance {
 }
 
 pub type Grid {
-  Grid(grid: Dict(Coordinate, String))
+  Grid(grid: Dict(Coordinate, String), rows: Int, columns: Int)
 }
 
 // we treat a string as a row of letters
@@ -57,14 +57,14 @@ fn try_to_make_grid(
   let #(sizes, dicts) = list.unzip(d)
   case list.unique(sizes) {
     // if we only get one unique size, all the rows are the same size
-    [_all_same_size] -> {
-      Ok(
-        Grid(
-          list.fold(over: dicts, from: dict.new(), with: fn(acc, x) {
-            dict.merge(acc, x)
-          }),
-        ),
-      )
+    [row_length] -> {
+      Ok(Grid(
+        grid: list.fold(over: dicts, from: dict.new(), with: fn(acc, x) {
+          dict.merge(acc, x)
+        }),
+        columns: row_length,
+        rows: list.length(dicts),
+      ))
     }
     // otherwise, we don't have a proper grid
     _ -> Error(Nil)

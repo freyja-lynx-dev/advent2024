@@ -157,10 +157,13 @@ MSAMXMSMSA"
       #(Coordinate(8, 1), "S"),
       #(Coordinate(9, 1), "A"),
     ])
-  let grid = Grid(grid: parsed_rows)
+  let grid = Grid(grid: parsed_rows, rows: 2, columns: 10)
 
   assert grid
-    == result.unwrap(ceres_search.make_grid_from(row_data), Grid(dict.new()))
+    == result.unwrap(
+      ceres_search.make_grid_from(row_data),
+      Grid(dict.new(), 0, 0),
+    )
 }
 
 pub fn ceres_search_test() {
