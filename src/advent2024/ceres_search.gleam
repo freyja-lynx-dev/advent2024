@@ -48,6 +48,10 @@ pub fn string_to_coordinates(
   }
 }
 
+fn merge_dicts_from_list(l: List(Dict(a, b))) -> Dict(a, b) {
+  list.fold(over: l, from: dict.new(), with: fn(acc, x) { dict.merge(acc, x) })
+}
+
 fn try_to_make_grid(
   d: List(#(Int, Dict(Coordinate, String))),
 ) -> Result(Grid, Nil) {
@@ -59,9 +63,7 @@ fn try_to_make_grid(
     // if we only get one unique size, all the rows are the same size
     [row_length] -> {
       Ok(Grid(
-        grid: list.fold(over: dicts, from: dict.new(), with: fn(acc, x) {
-          dict.merge(acc, x)
-        }),
+        grid: merge_dicts_from_list(dicts),
         columns: row_length,
         rows: list.length(dicts),
       ))
