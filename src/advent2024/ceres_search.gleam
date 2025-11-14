@@ -145,7 +145,7 @@ pub fn get_vertical_lines_for_grid(grid: Grid) -> Yielder(Line) {
   })
 }
 
-fn make_lines_from_step(
+fn make_diagonal_lines_from_step(
   prevline: Line,
   origin_step: #(Int, Int),
   end_step: #(Int, Int),
@@ -157,20 +157,26 @@ fn make_lines_from_step(
   let new_end = #(prevline.end.x + esx, prevline.end.y + esy)
 
   case new_origin, new_end {
-    // base case for bottom
+    // base case for falling bottom lines
     #(0, noy), #(1, ney) -> [
       Line(Coordinate(0, noy), Coordinate(1, ney), prevline.direction),
     ]
-    // base case for top
+    // base case for falling top lines
     #(nox, 0), #(nex, 1) -> [
       Line(Coordinate(nox, 0), Coordinate(nex, 1), prevline.direction),
     ]
+    // base case for rising top lines
+    // this one is a bit funky since we don't have a reference to the grid
+    // but theoretically, if we get to the point where the origin and end are equal, we can
+    // return the empty list and it should work without needing to know anything about the grid
+    // the lines are based on
+    _, _ if new_origin == new_end -> []
     // general case
     #(nox, noy), #(nex, ney) -> {
       let newline =
         Line(Coordinate(nox, noy), Coordinate(nex, ney), prevline.direction)
       list.prepend(
-        to: make_lines_from_step(newline, origin_step, end_step),
+        to: make_diagonal_lines_from_step(newline, origin_step, end_step),
         this: newline,
       )
     }
@@ -182,7 +188,9 @@ fn get_lines_from_step(
   origin_step: #(Int, Int),
   end_step: #(Int, Int),
 ) -> Yielder(Line) {
-  yielder.from_list(make_lines_from_step(midline, origin_step, end_step))
+  make_diagonal_lines_from_step(midline, origin_step, end_step)
+  |> echo
+  |> yielder.from_list()
 }
 
 pub fn get_diagonal_falling_lines_for_grid(grid: Grid) -> Yielder(Line) {
@@ -205,15 +213,15 @@ pub fn get_diagonal_falling_lines_for_grid(grid: Grid) -> Yielder(Line) {
     )
 
   let bottom_lines = get_lines_from_step(midline, #(0, 1), #(-1, 0))
-  echo yielder.to_list(bottom_lines)
+  //echo yielder.to_list(bottom_lines)
 
   let top_lines = get_lines_from_step(midline, #(1, 0), #(0, -1))
 
-  echo yielder.to_list(top_lines)
+  //echo yielder.to_list(top_lines)
 
   top_lines
   |> yielder.prepend(midline)
-  |> yielder.append(bottom_lines)
+  |> yielder.append(to: bottom_lines)
 }
 
 pub fn get_diagonal_rising_lines_for_grid(grid: Grid) -> Yielder(Line) {
@@ -228,21 +236,24 @@ pub fn get_diagonal_rising_lines_for_grid(grid: Grid) -> Yielder(Line) {
   //
   // origins: (x=0, rows > y >= 0, step: (0,-1)) and (1 <= x < columns, y = rows-1, step: (1,0))
   // ends: (columns > x > 0, y = 0, step: (-1, 0)) and (x = columns-1, rows > y > 0, step: (0,-1))
-  let midline = [
+  let midline =
     Line(
       Coordinate(0, grid.rows - 1),
       Coordinate(grid.columns - 1, 0),
       DiagonalRising,
-    ),
-  ]
-  let bottom_lines = []
-  let top_lines = []
+    )
 
-  top_lines
-  |> list.prepend(this: midline)
-  |> list.prepend(this: bottom_lines)
-  |> list.flatten()
-  |> yielder.from_list()
+  // let bottom_lines = get_lines_from_step(midline, #(0, -1), #(1, 0))
+  //echo yielder.to_list(bottom_lines)
+
+  // let top_lines = get_lines_from_step(midline, #(-1, 0), #(0, -1))
+
+  //echo yielder.to_list(top_lines)
+
+  // top_lines
+  // |> yielder.prepend(midline)
+  // |> yielder.append(to: bottom_lines)
+  yielder.from_list([midline])
 }
 
 pub fn get_all_lines_for_grid(
@@ -251,9 +262,9 @@ pub fn get_all_lines_for_grid(
   let horizontal_lines = get_horizontal_lines_for_grid(grid)
   let vertical_lines = get_vertical_lines_for_grid(grid)
   let diagonal_falling_lines = get_diagonal_falling_lines_for_grid(grid)
-  echo yielder.to_list(diagonal_falling_lines)
+  //echo yielder.to_list(diagonal_falling_lines)
   let diagonal_rising_lines = get_diagonal_rising_lines_for_grid(grid)
-  echo yielder.to_list(diagonal_rising_lines)
+  //echo yielder.to_list(diagonal_rising_lines)
   #(
     horizontal_lines,
     vertical_lines,

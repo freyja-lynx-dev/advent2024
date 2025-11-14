@@ -101,7 +101,7 @@ pub fn remove_donts_stdlib_tco_test() {
     == mem_corrupt.remove_donts_stdlib_tco(test_data)
 }
 
-fn ceres_search_data() -> String {
+fn ceres_search_square_grid() -> String {
   "MMMSXXMASM
 MSAMXMSMSA
 AMXSXMAAMM
@@ -235,7 +235,7 @@ pub fn get_diagonal_rising_lines_test() {
 }
 
 pub fn get_all_lines_for_grid_test() {
-  let data = ceres_search_data()
+  let data = ceres_search_square_grid()
   let assert Ok(grid) = ceres_search.make_grid_from(data)
   // we can infer the amount of lines from
   let total_lines =
@@ -273,7 +273,7 @@ pub fn get_all_lines_for_grid_test() {
 pub fn ceres_search_test() {
   assert 18
     == option.unwrap(
-      ceres_search.find_all_of_pattern(ceres_search_data(), "XMAS"),
+      ceres_search.find_all_of_pattern(ceres_search_square_grid(), "XMAS"),
       0,
     )
 }
