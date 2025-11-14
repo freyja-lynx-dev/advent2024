@@ -1,4 +1,6 @@
-import advent2024/ceres_search.{Coordinate, Grid}
+import advent2024/ceres_search.{
+  Coordinate, DiagonalFalling, DiagonalRising, Grid, Horizontal, Line, Vertical,
+}
 import advent2024/mem_corrupt
 import advent2024/safe_check
 import advent2024/total_dist
@@ -166,14 +168,80 @@ MSAMXMSMSA"
   assert grid == result.unwrap(assembled_grid, Grid(dict.new(), 0, 0))
 }
 
+fn ceres_search_3x3_grid() -> String {
+  "XXX
+XXX
+XXX"
+}
+
+pub fn get_horizontal_lines_test() {
+  let assert Ok(grid) = ceres_search.make_grid_from(ceres_search_3x3_grid())
+
+  let lines =
+    ceres_search.get_horizontal_lines_for_grid(grid)
+    |> yielder.to_list()
+
+  assert [
+      Line(Coordinate(0, 0), Coordinate(2, 0), Horizontal),
+      Line(Coordinate(0, 1), Coordinate(2, 1), Horizontal),
+      Line(Coordinate(0, 2), Coordinate(2, 2), Horizontal),
+    ]
+    == lines
+}
+
+pub fn get_vertical_lines_test() {
+  let assert Ok(grid) = ceres_search.make_grid_from(ceres_search_3x3_grid())
+
+  let lines =
+    ceres_search.get_vertical_lines_for_grid(grid)
+    |> yielder.to_list()
+
+  assert [
+      Line(Coordinate(0, 0), Coordinate(0, 2), Vertical),
+      Line(Coordinate(1, 0), Coordinate(1, 2), Vertical),
+      Line(Coordinate(2, 0), Coordinate(2, 2), Vertical),
+    ]
+    == lines
+}
+
+pub fn get_diagonal_falling_lines_test() {
+  let assert Ok(grid) = ceres_search.make_grid_from(ceres_search_3x3_grid())
+
+  let lines =
+    ceres_search.get_diagonal_falling_lines_for_grid(grid)
+    |> yielder.to_list()
+
+  assert [
+      Line(Coordinate(0, 1), Coordinate(1, 2), DiagonalFalling),
+      Line(Coordinate(0, 0), Coordinate(2, 2), DiagonalFalling),
+      Line(Coordinate(1, 0), Coordinate(2, 1), DiagonalFalling),
+    ]
+    == lines
+}
+
+pub fn get_diagonal_rising_lines_test() {
+  let assert Ok(grid) = ceres_search.make_grid_from(ceres_search_3x3_grid())
+
+  let lines =
+    ceres_search.get_diagonal_rising_lines_for_grid(grid)
+    |> yielder.to_list()
+
+  assert [
+      Line(Coordinate(0, 1), Coordinate(1, 0), DiagonalRising),
+      Line(Coordinate(0, 2), Coordinate(2, 0), DiagonalRising),
+      Line(Coordinate(1, 2), Coordinate(2, 1), DiagonalRising),
+    ]
+    == lines
+}
+
 pub fn get_all_lines_for_grid_test() {
   let data = ceres_search_data()
   let assert Ok(grid) = ceres_search.make_grid_from(data)
   // we can infer the amount of lines from
   let total_lines =
-    // n+m - 1 unique diagonals
+    // n+m - 3 unique diagonals (as we exclude single point lines for irrelevancy)
     grid.rows + grid.columns
-    |> int.add(-1)
+    |> int.add(-3)
     // both rising and falling diagonals
     |> int.multiply(2)
     // plus horizontal lines (rows)
@@ -182,13 +250,10 @@ pub fn get_all_lines_for_grid_test() {
     |> int.add(grid.columns)
 
   // check our math with a worked out paper example
-  assert 58 == total_lines
+  assert 54 == total_lines
 
   let #(h, v, df, dr) = ceres_search.get_all_lines_for_grid(grid)
 
-  // you might wonder: shouldn't we ensure the lines are what we expect
-  // oh, but you poor thing myself, we're going to test line generation
-  // in another unit test. so we don't need to double check our work.
   let lengths = [
     yielder.length(h),
     yielder.length(v),
@@ -196,7 +261,10 @@ pub fn get_all_lines_for_grid_test() {
     yielder.length(dr),
   ]
 
-  assert [10, 10, 19, 19] == lengths
+  // you might wonder: shouldn't we ensure the lines are what we expect
+  // oh, but you poor thing myself, we're going to test line generation
+  // in another unit test. so we don't need to double check our work.
+  assert [10, 10, 17, 17] == lengths
 
   // we should yield all 58 lines from our four generators altogether
   assert total_lines == list.fold(lengths, 0, fn(acc, x) { acc + x })

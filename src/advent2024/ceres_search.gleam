@@ -100,23 +100,17 @@ fn make_pattern(p: String) -> Pattern {
   Pattern(p, string.reverse(p))
 }
 
-fn make_line(
-  x_start: Int,
-  y_start: Int,
-  x_end: Int,
-  y_end: Int,
-  dir: Direction,
-) -> Line {
-  Line(Coordinate(x_start, y_start), Coordinate(x_end, y_end), dir)
-}
-
 pub fn get_horizontal_lines_for_grid(grid: Grid) -> Yielder(Line) {
   yielder.unfold(from: 0, with: fn(n) {
     case n {
       n if n == grid.rows -> Done
       n ->
         Next(
-          element: make_line(0, n, grid.columns - 1, n, Horizontal),
+          element: Line(
+            origin: Coordinate(0, n),
+            end: Coordinate(grid.columns - 1, n),
+            direction: Horizontal,
+          ),
           accumulator: n + 1,
         )
     }
@@ -129,7 +123,11 @@ pub fn get_vertical_lines_for_grid(grid: Grid) -> Yielder(Line) {
       n if n == grid.columns -> Done
       n ->
         Next(
-          element: make_line(n, 0, n, grid.columns - 1, Vertical),
+          element: Line(
+            origin: Coordinate(n, 0),
+            end: Coordinate(n, grid.columns - 1),
+            direction: Vertical,
+          ),
           accumulator: n + 1,
         )
     }
@@ -137,11 +135,61 @@ pub fn get_vertical_lines_for_grid(grid: Grid) -> Yielder(Line) {
 }
 
 pub fn get_diagonal_falling_lines_for_grid(grid: Grid) -> Yielder(Line) {
-  todo
+  // we start from (x,y) on the grid
+  // iterate each point (1,1) until we run out of grid
+  // the point that we end on, is the endpoint of the line
+  // 3x3 grid example:
+  // 0 1 2
+  // 1
+  // 2
+  // |> [Line((0,0), (2,2)), Line((0,1),(1,2)), Line((1,0),(2,1))]
+  //
+  // origins: (0, 0 <= y < rows, step: (0,1)) and (1 <= x < columns, 0, step: (1,0))
+  // ends: (columns > x >= 0 , y = rows-1, step: (-1,0)) and (x = columns-1, rows > y >= 0, step: (0,-1))
+  let midline = [
+    Line(
+      Coordinate(0, 0),
+      Coordinate(grid.columns - 1, grid.rows - 1),
+      DiagonalFalling,
+    ),
+  ]
+  let bottom_lines = []
+  let top_lines = []
+
+  top_lines
+  |> list.prepend(this: midline)
+  |> list.prepend(this: bottom_lines)
+  |> list.flatten()
+  |> yielder.from_list()
 }
 
 pub fn get_diagonal_rising_lines_for_grid(grid: Grid) -> Yielder(Line) {
-  todo
+  // we start from (x,y) on the grid
+  // iterate each point (1,1) until we run out of grid
+  // the point that we end on, is the endpoint of the line
+  // 3x3 grid example:
+  // 0 1 2
+  // 1
+  // 2
+  // |> [Line((0,2), (2,0)), Line((0,1),(1,0)), Line((1,2),(2,1))]
+  //
+  // origins: (x=0, rows > y >= 0, step: (0,-1)) and (1 <= x < columns, y = rows-1, step: (1,0))
+  // ends: (columns > x > 0, y = 0, step: (-1, 0)) and (x = columns-1, rows > y > 0, step: (0,-1))
+  let midline = [
+    Line(
+      Coordinate(0, grid.rows - 1),
+      Coordinate(grid.columns - 1, 0),
+      DiagonalRising,
+    ),
+  ]
+  let bottom_lines = []
+  let top_lines = []
+
+  top_lines
+  |> list.prepend(this: midline)
+  |> list.prepend(this: bottom_lines)
+  |> list.flatten()
+  |> yielder.from_list()
 }
 
 pub fn get_all_lines_for_grid(
@@ -164,19 +212,11 @@ pub fn get_all_lines_for_grid(
 }
 
 pub fn find_all_of_pattern(s: String, pattern: String) -> Option(Int) {
-  // we must look for the pattern forwards and backwards in each row, column, and diagonal
-  // so what's the best way of doing this
-  //
-  // we could make three lists:
-  //   - list of rows
-  //   - list of columns
-  //   - list of diagonals
-  //
-  // then it is as simple as mapping the search function over each row/column/diagonal,
-  //   once for each pattern
-  //
-  // we will have n rows, m columns, and 2((n*m)-1) diagonals
-  // so we could derive the coordinates to check, then simply iterate over them
+  // here's how we're going to do this:
+  // - create the grid
+  // - get 4 line generators -- horizontal, vertical, diagonal falling, diagonal rising
+  // - search for the pattern in each line
+  // - accumulate instances
   let pattern = make_pattern(pattern)
   case make_grid_from(s) {
     Error(_) -> None
