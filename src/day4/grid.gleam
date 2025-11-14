@@ -1,29 +1,13 @@
+import day4/coordinate.{type Coordinate, Coordinate}
+import day4/line.{
+  type Line, DiagonalFalling, DiagonalRising, Horizontal, Line, Vertical,
+}
 import gleam/dict.{type Dict}
 import gleam/io
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/string
 import gleam/yielder.{type Step, type Yielder, Done, Next}
-
-pub type Pattern {
-  Pattern(forwards: String, backwards: String)
-}
-
-pub type Coordinate {
-  Coordinate(x: Int, y: Int)
-}
-
-pub type Direction {
-  Horizontal
-  Vertical
-  DiagonalRising
-  DiagonalFalling
-}
-
-// we can use gleam/yielder to infer the midpoints
-pub type Line {
-  Line(origin: Coordinate, end: Coordinate, direction: Direction)
-}
 
 pub type Grid {
   Grid(grid: Dict(Coordinate, String), rows: Int, columns: Int)
@@ -84,7 +68,7 @@ fn try_grid_assemble(
 }
 
 // 
-pub fn make_grid_from(input: String) -> Result(Grid, Nil) {
+pub fn make(input: String) -> Result(Grid, Nil) {
   string.split(input, on: "\n")
   |> list.index_map(with: fn(row, y) {
     // transform each row into a #(size_of_dict, dict)
@@ -96,21 +80,6 @@ pub fn make_grid_from(input: String) -> Result(Grid, Nil) {
   |> try_grid_assemble()
 }
 
-fn slope_for_direction(d: Direction) -> #(Int, Int) {
-  case d {
-    Horizontal -> #(1, 0)
-    Vertical -> #(0, 1)
-    // falling and rising are reversed as our grid perspective is
-    // top to bottom... this is a bit confusing, but i'm not gonna change it
-    DiagonalFalling -> #(1, 1)
-    DiagonalRising -> #(-1, -1)
-  }
-}
-
-fn make_pattern(p: String) -> Pattern {
-  Pattern(p, string.reverse(p))
-}
-
 pub fn get_horizontal_lines_for_grid(grid: Grid) -> Yielder(Line) {
   yielder.unfold(from: 0, with: fn(n) {
     case n {
@@ -120,7 +89,7 @@ pub fn get_horizontal_lines_for_grid(grid: Grid) -> Yielder(Line) {
           element: Line(
             origin: Coordinate(0, n),
             end: Coordinate(grid.columns - 1, n),
-            direction: Horizontal,
+            direction: line.Horizontal,
           ),
           accumulator: n + 1,
         )
@@ -256,7 +225,8 @@ pub fn get_diagonal_rising_lines_for_grid(grid: Grid) -> Yielder(Line) {
   yielder.from_list([midline])
 }
 
-pub fn get_all_lines_for_grid(
+// Returns all possible lines for the given grid
+pub fn lines(
   grid: Grid,
 ) -> #(Yielder(Line), Yielder(Line), Yielder(Line), Yielder(Line)) {
   let horizontal_lines = get_horizontal_lines_for_grid(grid)
@@ -265,26 +235,13 @@ pub fn get_all_lines_for_grid(
   //echo yielder.to_list(diagonal_falling_lines)
   let diagonal_rising_lines = get_diagonal_rising_lines_for_grid(grid)
   //echo yielder.to_list(diagonal_rising_lines)
+
+  // todo: just return a single yielder, we don't need to know the internal
+  // representation outside of this module
   #(
     horizontal_lines,
     vertical_lines,
     diagonal_falling_lines,
     diagonal_rising_lines,
   )
-}
-
-pub fn find_all_of_pattern(s: String, pattern: String) -> Option(Int) {
-  // here's how we're going to do this:
-  // - create the grid
-  // - get 4 line generators -- horizontal, vertical, diagonal falling, diagonal rising
-  // - search for the pattern in each line
-  // - accumulate instances
-  let pattern = make_pattern(pattern)
-  case make_grid_from(s) {
-    Error(_) -> None
-    Ok(grid) -> {
-      get_all_lines_for_grid(grid)
-      Some(0)
-    }
-  }
 }
