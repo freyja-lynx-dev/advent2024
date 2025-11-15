@@ -26,6 +26,13 @@ MAMMMXMMMM
 MXMXAXMASX"
 }
 
+fn ceres_search_rectangle_grid() -> String {
+  "MMMSXXMASM
+MSAMXMSMSA
+AMXSXMAAMM
+MSAMASMSMX"
+}
+
 pub fn string_to_coordinates_test() {
   let row_data = "MMMSXXMASM"
   let row =
@@ -176,6 +183,44 @@ pub fn get_all_lines_for_square_grid_test() {
   // oh, but you poor thing myself, we're going to test line generation
   // in another unit test. so we don't need to double check our work.
   assert [10, 10, 17, 17] == lengths
+
+  // we should yield all 54 lines from our four generators altogether
+  assert total_lines == list.fold(lengths, 0, fn(acc, x) { acc + x })
+}
+
+pub fn get_all_lines_for_rectangular_grid_test() {
+  // 4x10 grid
+  let data = ceres_search_rectangle_grid()
+  let assert Ok(g) = grid.make(data)
+  // we can infer the amount of lines from
+  let total_lines =
+    // n+m - 3 unique diagonals (as we exclude single point lines for irrelevancy)
+    g.rows + g.columns
+    |> int.add(-3)
+    // both rising and falling diagonals
+    |> int.multiply(2)
+    // plus horizontal lines (rows)
+    |> int.add(g.rows)
+    // plus vertical lines (columns)
+    |> int.add(g.columns)
+
+  // check our math with a worked out paper example
+  // 4 + 10 + 11 + 11 -> 14 + 22 -> 36
+  assert 36 == total_lines
+
+  let #(h, v, df, dr) = grid.lines(g)
+
+  let lengths = [
+    yielder.length(h),
+    yielder.length(v),
+    yielder.length(df),
+    yielder.length(dr),
+  ]
+
+  // you might wonder: shouldn't we ensure the lines are what we expect
+  // oh, but you poor thing myself, we're going to test line generation
+  // in another unit test. so we don't need to double check our work.
+  assert [4, 10, 11, 11] == lengths
 
   // we should yield all 54 lines from our four generators altogether
   assert total_lines == list.fold(lengths, 0, fn(acc, x) { acc + x })
