@@ -11,7 +11,6 @@ import gleam/list
 import gleam/option
 import gleam/result
 import gleam/yielder
-import gleeunit
 
 fn ceres_search_square_grid() -> String {
   "MMMSXXMASM
@@ -33,7 +32,7 @@ AMXSXMAAMM
 MSAMASMSMX"
 }
 
-pub fn string_to_coordinates_test() {
+pub fn grid_string_to_coordinates_test() {
   let row_data = "MMMSXXMASM"
   let row =
     dict.from_list([
@@ -53,7 +52,7 @@ pub fn string_to_coordinates_test() {
   assert row == constructed_row
 }
 
-pub fn make_grid_from_test() {
+pub fn grid_make_test() {
   let row_data =
     "MMMSXXMASM
 MSAMXMSMSA"
@@ -122,7 +121,7 @@ pub fn get_vertical_lines_test() {
     == lines
 }
 
-pub fn get_diagonal_falling_lines_test() {
+pub fn get_diagonal_falling_lines_for_square_test() {
   let assert Ok(g) = grid.make(ceres_search_3x3_grid())
 
   let lines =
@@ -137,7 +136,7 @@ pub fn get_diagonal_falling_lines_test() {
     == lines
 }
 
-pub fn get_diagonal_rising_lines_test() {
+pub fn get_diagonal_rising_lines_for_square_test() {
   let assert Ok(g) = grid.make(ceres_search_3x3_grid())
 
   let lines =
@@ -148,6 +147,52 @@ pub fn get_diagonal_rising_lines_test() {
       Line(Coordinate(0, 1), Coordinate(1, 0), DiagonalRising),
       Line(Coordinate(0, 2), Coordinate(2, 0), DiagonalRising),
       Line(Coordinate(1, 2), Coordinate(2, 1), DiagonalRising),
+    ]
+    == lines
+}
+
+pub fn get_diagonal_falling_lines_for_rectangle_test() {
+  let assert Ok(g) = grid.make(ceres_search_rectangle_grid())
+
+  let lines =
+    grid.get_diagonal_falling_lines_for_grid(g)
+    |> yielder.to_list()
+
+  assert [
+      Line(Coordinate(0, 2), Coordinate(1, 3), DiagonalFalling),
+      Line(Coordinate(0, 1), Coordinate(2, 3), DiagonalFalling),
+      Line(Coordinate(0, 0), Coordinate(3, 3), DiagonalFalling),
+      Line(Coordinate(1, 0), Coordinate(4, 3), DiagonalFalling),
+      Line(Coordinate(2, 0), Coordinate(5, 3), DiagonalFalling),
+      Line(Coordinate(3, 0), Coordinate(6, 3), DiagonalFalling),
+      Line(Coordinate(4, 0), Coordinate(7, 3), DiagonalFalling),
+      Line(Coordinate(5, 0), Coordinate(8, 3), DiagonalFalling),
+      Line(Coordinate(6, 0), Coordinate(9, 3), DiagonalFalling),
+      Line(Coordinate(7, 0), Coordinate(9, 2), DiagonalFalling),
+      Line(Coordinate(8, 0), Coordinate(9, 1), DiagonalFalling),
+    ]
+    == lines
+}
+
+pub fn get_diagonal_rising_lines_for_rectangle_test() {
+  let assert Ok(g) = grid.make(ceres_search_rectangle_grid())
+
+  let lines =
+    grid.get_diagonal_rising_lines_for_grid(g)
+    |> yielder.to_list()
+
+  assert [
+      Line(Coordinate(0, 1), Coordinate(1, 0), DiagonalRising),
+      Line(Coordinate(0, 2), Coordinate(2, 0), DiagonalRising),
+      Line(Coordinate(0, 3), Coordinate(3, 0), DiagonalRising),
+      Line(Coordinate(1, 3), Coordinate(4, 0), DiagonalRising),
+      Line(Coordinate(2, 3), Coordinate(5, 0), DiagonalRising),
+      Line(Coordinate(3, 3), Coordinate(6, 0), DiagonalRising),
+      Line(Coordinate(4, 3), Coordinate(7, 0), DiagonalRising),
+      Line(Coordinate(5, 3), Coordinate(8, 0), DiagonalRising),
+      Line(Coordinate(6, 3), Coordinate(9, 0), DiagonalRising),
+      Line(Coordinate(7, 3), Coordinate(9, 1), DiagonalRising),
+      Line(Coordinate(8, 3), Coordinate(9, 2), DiagonalRising),
     ]
     == lines
 }
@@ -217,9 +262,6 @@ pub fn get_all_lines_for_rectangular_grid_test() {
     yielder.length(dr),
   ]
 
-  // you might wonder: shouldn't we ensure the lines are what we expect
-  // oh, but you poor thing myself, we're going to test line generation
-  // in another unit test. so we don't need to double check our work.
   assert [4, 10, 11, 11] == lengths
 
   // we should yield all 54 lines from our four generators altogether
