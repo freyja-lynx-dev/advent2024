@@ -17,6 +17,7 @@ pub type Direction {
   DiagonalFalling
 }
 
+
 fn slope_for_direction(d: Direction) -> #(Int, Int) {
   case d {
     Horizontal -> #(1, 0)

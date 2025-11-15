@@ -1,7 +1,8 @@
-import day4/coordinate.{type Coordinate, Coordinate}
+import day4/coordinate.{type Coordinate, type EdgeCoordinate, EdgeCoordinate}
 import day4/line.{
   type Line, DiagonalFalling, DiagonalRising, Horizontal, Line, Vertical,
 }
+import gleam/bool
 import gleam/dict.{type Dict}
 import gleam/io
 import gleam/list
@@ -24,7 +25,7 @@ pub fn string_to_coordinates(
   s: String,
   d: Dict(Coordinate, String),
 ) -> Dict(Coordinate, String) {
-  let coordinate: Coordinate = Coordinate(x:, y:)
+  let coordinate: Coordinate = coordinate.Coordinate(x:, y:)
   case string.pop_grapheme(s) {
     // we should never get here but it won't change anything if we do
     Error(_) -> d
@@ -87,8 +88,8 @@ pub fn get_horizontal_lines_for_grid(grid: Grid) -> Yielder(Line) {
       n ->
         Next(
           element: Line(
-            origin: Coordinate(0, n),
-            end: Coordinate(grid.columns - 1, n),
+            origin: coordinate.Coordinate(0, n),
+            end: coordinate.Coordinate(grid.columns - 1, n),
             direction: line.Horizontal,
           ),
           accumulator: n + 1,
@@ -104,8 +105,8 @@ pub fn get_vertical_lines_for_grid(grid: Grid) -> Yielder(Line) {
       n ->
         Next(
           element: Line(
-            origin: Coordinate(n, 0),
-            end: Coordinate(n, grid.columns - 1),
+            origin: coordinate.Coordinate(n, 0),
+            end: coordinate.Coordinate(n, grid.columns - 1),
             direction: Vertical,
           ),
           accumulator: n + 1,
@@ -128,11 +129,19 @@ fn make_diagonal_lines_from_step(
   case new_origin, new_end {
     // base case for falling bottom lines
     #(0, noy), #(1, ney) -> [
-      Line(Coordinate(0, noy), Coordinate(1, ney), prevline.direction),
+      Line(
+        coordinate.Coordinate(0, noy),
+        coordinate.Coordinate(1, ney),
+        prevline.direction,
+      ),
     ]
     // base case for falling top lines
     #(nox, 0), #(nex, 1) -> [
-      Line(Coordinate(nox, 0), Coordinate(nex, 1), prevline.direction),
+      Line(
+        coordinate.Coordinate(nox, 0),
+        coordinate.Coordinate(nex, 1),
+        prevline.direction,
+      ),
     ]
     // base case for rising top lines
     // this one is a bit funky since we don't have a reference to the grid
@@ -143,7 +152,11 @@ fn make_diagonal_lines_from_step(
     // general case
     #(nox, noy), #(nex, ney) -> {
       let newline =
-        Line(Coordinate(nox, noy), Coordinate(nex, ney), prevline.direction)
+        Line(
+          coordinate.Coordinate(nox, noy),
+          coordinate.Coordinate(nex, ney),
+          prevline.direction,
+        )
       list.prepend(
         to: make_diagonal_lines_from_step(newline, origin_step, end_step),
         this: newline,
@@ -176,8 +189,8 @@ pub fn get_diagonal_falling_lines_for_grid(grid: Grid) -> Yielder(Line) {
   // ends: (columns > x >= 0 , y = rows-1, step: (-1,0)) and (x = columns-1, rows > y >= 0, step: (0,-1))
   let midline =
     Line(
-      Coordinate(0, 0),
-      Coordinate(grid.columns - 1, grid.rows - 1),
+      coordinate.Coordinate(0, 0),
+      coordinate.Coordinate(grid.columns - 1, grid.rows - 1),
       DiagonalFalling,
     )
 
@@ -207,8 +220,8 @@ pub fn get_diagonal_rising_lines_for_grid(grid: Grid) -> Yielder(Line) {
   // ends: (columns > x > 0, y = 0, step: (-1, 0)) and (x = columns-1, rows > y > 0, step: (0,-1))
   let midline =
     Line(
-      Coordinate(0, grid.rows - 1),
-      Coordinate(grid.columns - 1, 0),
+      coordinate.Coordinate(0, grid.rows - 1),
+      coordinate.Coordinate(grid.columns - 1, 0),
       DiagonalRising,
     )
 
@@ -244,4 +257,33 @@ pub fn lines(
     diagonal_falling_lines,
     diagonal_rising_lines,
   )
+}
+
+// 
+fn make_edge_line(
+  from start: EdgeCoordinate,
+  to end: EdgeCoordinate,
+) -> Yielder(EdgeCoordinate) {
+  let end_plus = coordinate.edge_increment(end)
+  echo end_plus
+  yielder.unfold(from: start, with: fn(cur) {
+    let next_coordinate = coordinate.edge_increment(cur)
+    case next_coordinate {
+      c if c == end_plus -> Done
+      c -> Next(element: cur, accumulator: c)
+    }
+  })
+}
+
+pub fn edge_line(
+  from a: EdgeCoordinate,
+  to b: EdgeCoordinate,
+) -> Result(Yielder(EdgeCoordinate), Nil) {
+  let end = coordinate.edge_increment(b)
+  case a, b {
+    // if the coordinates are the same, it doesn't make sense to make an edgeline
+    _, _ if a == b -> Error(Nil)
+    // the happy case :)
+    start, _ -> Ok(make_edge_line(from: start, to: end))
+  }
 }

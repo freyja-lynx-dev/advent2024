@@ -1,5 +1,8 @@
 import ceres_search
-import day4/coordinate.{type Coordinate, Coordinate}
+import day4/coordinate.{
+  type Coordinate, type EdgeCoordinate, Backwards, Bottom, Bounds, Coordinate,
+  EdgeCoordinate, Forwards, Left, Right, Top,
+}
 import day4/grid.{type Grid, Grid}
 import day4/line.{
   type Line, DiagonalFalling, DiagonalRising, Horizontal, Line, Vertical,
@@ -119,6 +122,67 @@ pub fn get_vertical_lines_test() {
       Line(Coordinate(2, 0), Coordinate(2, 2), Vertical),
     ]
     == lines
+}
+
+// pub fn is_on_edge_test() {
+//   let assert Ok(g) = grid.make(ceres_search_3x3_grid())
+
+//   let a = Coordinate(1, 2)
+//   let b = Coordinate(0, 1)
+//   let c = Coordinate(2, 1)
+//   let d = Coordinate(1, 0)
+//   let e = Coordinate(1, 1)
+
+//   assert True == grid.coordinate_on_edge(a, of: g)
+//   assert True == grid.coordinate_on_edge(b, of: g)
+//   assert True == grid.coordinate_on_edge(c, of: g)
+//   assert True == grid.coordinate_on_edge(d, of: g)
+//   assert False == grid.coordinate_on_edge(e, of: g)
+// }
+
+/// ok so we're trying a new approach for generating diagonal lines:
+/// make a yielder that yields every coordinate on the edge of a grid between
+/// two edge points
+///
+/// this allows us to create the diagonal lines by simply zipping the coordinates
+/// on opposite edges of the grid. example:
+///   1,0 to 3,2 -> [(1,0), (2,0), (3,0), (3,1), (3,2)]  
+///   0,1 to 2,3 -> [(0,1), (0,2), (0,3), (1,3), (2,3)]
+///
+/// as you can see, yielding the coordinates in-step allows us to create the diagonal lines
+///
+/// the question is, how do we best define this as a type
+///
+/// maybe the answer is an EdgeLine type that has knowledge of the grid's bounds,
+/// and thus can increment its coordinates with a simple int, knowing when to
+/// switch from adding to x/y to y/x
+///
+pub fn make_edgeline_test() {
+  let edge_x =
+    result.unwrap(
+      grid.edge_line(
+        from: EdgeCoordinate(1, 0, Top, Bounds(2, 2), Forwards),
+        to: EdgeCoordinate(2, 1, Right, Bounds(2, 2), Forwards),
+      ),
+      yielder.empty(),
+    )
+  assert [Coordinate(1, 0), Coordinate(2, 0), Coordinate(2, 1)]
+    == list.map(yielder.to_list(edge_x), fn(x) {
+      coordinate.downcast_edge_coordinate(x)
+    })
+
+  let edge_y =
+    result.unwrap(
+      grid.edge_line(
+        from: EdgeCoordinate(0, 1, Left, Bounds(2, 2), Forwards),
+        to: EdgeCoordinate(1, 2, Bottom, Bounds(2, 2), Forwards),
+      ),
+      yielder.empty(),
+    )
+  assert [Coordinate(0, 1), Coordinate(0, 2), Coordinate(1, 2)]
+    == list.map(yielder.to_list(edge_y), fn(x) {
+      coordinate.downcast_edge_coordinate(x)
+    })
 }
 
 pub fn get_diagonal_falling_lines_for_square_test() {
