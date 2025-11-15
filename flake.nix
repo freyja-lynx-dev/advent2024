@@ -26,6 +26,7 @@
                 gleam
                 beam.interpreters.${erlang_version}
                 beam.packages.${erlang_version}.rebar3
+                nodejs
               ]
               ++ lib.optional stdenv.isLinux inotify-tools
               ++ (lib.optionals stdenv.isDarwin (
