@@ -37,6 +37,28 @@ pub type Direction {
   Backwards
 }
 
+/// EdgeCoordinates represent an arbitrary coordinate that exists on the edge of a Grid.
+/// Since they have knowledge of their own bounds, they can be arbitrarily incremented
+/// forwards and backwards along the perimeter of a grid, without having to do iteration
+/// at the point of use. Unless you need the extra info, use Coordinate.
+///
+/// Since EdgeCoordinates only make sense in the context of Grids, why are they here?
+/// I'm not sure. We'll see how I feel when I get to cleaning up this repo after I
+/// actually solve day4...
+///
+/// I'm not super comfortable with EdgeCoordinates having to know their directionality.
+/// It may be better to refactor edge coordinates to not have knowledge of their own direction,
+/// but instead be provided the direction by the consumer. The consumer knows what they want
+/// from the EdgeCoordinate, so they should be able to supply whichever direction
+/// they need from the iteration... let's redesign this after we solve day4.
+///
+/// On the other hand, if edge coordinates don't have a sense of direction, this requires
+/// the callers to handle the edge cases where a coordinate is iterated from left->top and
+/// right -> bottom. We'd have to supply extra context with the return anyways -- instead
+/// of just an EdgeCoordinate, we'd have to supply something like #(EdCo, Direction). Even
+/// if we gave a prev() function, you'd still need to move that iteration logic into the consumer
+/// end. It would make consumption more flexible, but for day4 purposes it's not really necessary?
+/// Idk.
 pub type EdgeCoordinate {
   EdgeCoordinate(
     x: Int,
@@ -229,7 +251,9 @@ fn top_increment(c: EdgeCoordinate) -> EdgeCoordinate {
   }
 }
 
-pub fn edge_increment(c: EdgeCoordinate) -> EdgeCoordinate {
+/// Get the coordinate that comes after the given coordinate, relative to its current
+/// direction.
+pub fn next(to c: EdgeCoordinate) -> EdgeCoordinate {
   case c.edge {
     Left -> left_increment(c)
     Right -> right_increment(c)
