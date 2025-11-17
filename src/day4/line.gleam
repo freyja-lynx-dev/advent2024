@@ -1,10 +1,4 @@
 import day4/coordinate.{type Coordinate}
-import gleam/dict.{type Dict}
-import gleam/io
-import gleam/list
-import gleam/option.{type Option, None, Some}
-import gleam/string
-import gleam/yielder.{type Step, type Yielder, Done, Next}
 
 pub type Line {
   Line(origin: Coordinate, end: Coordinate, direction: Direction)
@@ -16,7 +10,6 @@ pub type Direction {
   DiagonalRising
   DiagonalFalling
 }
-
 
 fn slope_for_direction(d: Direction) -> #(Int, Int) {
   case d {

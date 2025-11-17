@@ -1,18 +1,12 @@
 import day4/coordinate.{
-  type Bounds, type Coordinate, type Direction, type EdgeCoordinate, Backwards,
-  EdgeCoordinate, Forwards,
+  type Bounds, type Coordinate, type EdgeCoordinate, Backwards, Forwards,
 }
-import day4/line.{
-  type Line, DiagonalFalling, DiagonalRising, Horizontal, Line, Vertical,
-}
-import gleam/bool
+import day4/line.{type Line, DiagonalFalling, DiagonalRising, Line, Vertical}
 import gleam/dict.{type Dict}
-import gleam/io
 import gleam/list
-import gleam/option.{type Option, None, Some}
 import gleam/result
 import gleam/string
-import gleam/yielder.{type Step, type Yielder, Done, Next, empty}
+import gleam/yielder.{type Yielder, Done, Next, empty}
 
 pub type Grid {
   Grid(grid: Dict(Coordinate, String), rows: Int, columns: Int)
@@ -117,66 +111,6 @@ pub fn get_vertical_lines_for_grid(grid: Grid) -> Yielder(Line) {
         )
     }
   })
-}
-
-fn make_diagonal_lines_from_step(
-  prevline: Line,
-  origin_step: #(Int, Int),
-  end_step: #(Int, Int),
-) -> List(Line) {
-  let #(osx, osy) = origin_step
-  let new_origin = #(prevline.origin.x + osx, prevline.origin.y + osy)
-
-  let #(esx, esy) = end_step
-  let new_end = #(prevline.end.x + esx, prevline.end.y + esy)
-
-  case new_origin, new_end {
-    // base case for falling bottom lines
-    #(0, noy), #(1, ney) -> [
-      Line(
-        coordinate.Coordinate(0, noy),
-        coordinate.Coordinate(1, ney),
-        prevline.direction,
-      ),
-    ]
-    // base case for falling top lines
-    #(nox, 0), #(nex, 1) -> [
-      Line(
-        coordinate.Coordinate(nox, 0),
-        coordinate.Coordinate(nex, 1),
-        prevline.direction,
-      ),
-    ]
-    // base case for rising top lines
-    // this one is a bit funky since we don't have a reference to the grid
-    // but theoretically, if we get to the point where the origin and end are equal, we can
-    // return the empty list and it should work without needing to know anything about the grid
-    // the lines are based on
-    _, _ if new_origin == new_end -> []
-    // general case
-    #(nox, noy), #(nex, ney) -> {
-      let newline =
-        Line(
-          coordinate.Coordinate(nox, noy),
-          coordinate.Coordinate(nex, ney),
-          prevline.direction,
-        )
-      list.prepend(
-        to: make_diagonal_lines_from_step(newline, origin_step, end_step),
-        this: newline,
-      )
-    }
-  }
-}
-
-fn get_lines_from_step(
-  midline: Line,
-  origin_step: #(Int, Int),
-  end_step: #(Int, Int),
-) -> Yielder(Line) {
-  make_diagonal_lines_from_step(midline, origin_step, end_step)
-  |> echo
-  |> yielder.from_list()
 }
 
 fn make_bounds(from g: Grid) -> Bounds {
