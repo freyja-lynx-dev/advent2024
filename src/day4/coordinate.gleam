@@ -28,8 +28,12 @@ pub type Edge {
   Right
 }
 
-pub type Bounds {
+pub opaque type Bounds {
   Bounds(x: Int, y: Int)
+}
+
+pub fn make_bounds(x: Int, y: Int) -> Bounds {
+  Bounds(x:, y:)
 }
 
 pub type Direction {

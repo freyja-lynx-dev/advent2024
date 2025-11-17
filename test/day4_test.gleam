@@ -1,6 +1,6 @@
 import ceres_search
 import day4/coordinate.{
-  type Coordinate, type EdgeCoordinate, Backwards, Bottom, Bounds, Coordinate,
+  type Coordinate, type EdgeCoordinate, Backwards, Bottom, Coordinate,
   EdgeCoordinate, Forwards, Left, Right, Top,
 }
 import day4/grid.{type Grid, Grid}
@@ -161,8 +161,8 @@ pub fn make_edgeline_test() {
   let edge_x =
     result.unwrap(
       grid.edge_line(
-        from: EdgeCoordinate(1, 0, Top, Bounds(2, 2), Forwards),
-        to: EdgeCoordinate(2, 1, Right, Bounds(2, 2), Forwards),
+        from: EdgeCoordinate(1, 0, Top, coordinate.make_bounds(2, 2), Forwards),
+        to: EdgeCoordinate(2, 1, Right, coordinate.make_bounds(2, 2), Forwards),
       ),
       yielder.empty(),
     )
@@ -174,8 +174,8 @@ pub fn make_edgeline_test() {
   let edge_y =
     result.unwrap(
       grid.edge_line(
-        from: EdgeCoordinate(0, 1, Left, Bounds(2, 2), Forwards),
-        to: EdgeCoordinate(1, 2, Bottom, Bounds(2, 2), Forwards),
+        from: EdgeCoordinate(0, 1, Left, coordinate.make_bounds(2, 2), Forwards),
+        to: EdgeCoordinate(1, 2, Bottom, coordinate.make_bounds(2, 2), Forwards),
       ),
       yielder.empty(),
     )
@@ -188,9 +188,8 @@ pub fn make_edgeline_test() {
 pub fn get_diagonal_falling_lines_for_square_test() {
   let assert Ok(g) = grid.make(ceres_search_3x3_grid())
 
-  let lines =
-    grid.get_diagonal_falling_lines_for_grid(g)
-    |> yielder.to_list()
+  let assert Ok(lines) = grid.diagonal_falling_lines(g)
+  let lines = yielder.to_list(lines)
 
   assert [
       Line(Coordinate(0, 1), Coordinate(1, 2), DiagonalFalling),
@@ -203,9 +202,8 @@ pub fn get_diagonal_falling_lines_for_square_test() {
 pub fn get_diagonal_rising_lines_for_square_test() {
   let assert Ok(g) = grid.make(ceres_search_3x3_grid())
 
-  let lines =
-    grid.get_diagonal_rising_lines_for_grid(g)
-    |> yielder.to_list()
+  let assert Ok(lines) = grid.diagonal_rising_lines(g)
+  let lines = yielder.to_list(lines)
 
   assert [
       Line(Coordinate(0, 1), Coordinate(1, 0), DiagonalRising),
@@ -218,9 +216,8 @@ pub fn get_diagonal_rising_lines_for_square_test() {
 pub fn get_diagonal_falling_lines_for_rectangle_test() {
   let assert Ok(g) = grid.make(ceres_search_rectangle_grid())
 
-  let lines =
-    grid.get_diagonal_falling_lines_for_grid(g)
-    |> yielder.to_list()
+  let assert Ok(lines) = grid.diagonal_falling_lines(g)
+  let lines = yielder.to_list(lines)
 
   assert [
       Line(Coordinate(0, 2), Coordinate(1, 3), DiagonalFalling),
@@ -241,9 +238,8 @@ pub fn get_diagonal_falling_lines_for_rectangle_test() {
 pub fn get_diagonal_rising_lines_for_rectangle_test() {
   let assert Ok(g) = grid.make(ceres_search_rectangle_grid())
 
-  let lines =
-    grid.get_diagonal_rising_lines_for_grid(g)
-    |> yielder.to_list()
+  let assert Ok(lines) = grid.diagonal_rising_lines(g)
+  let lines = yielder.to_list(lines)
 
   assert [
       Line(Coordinate(0, 1), Coordinate(1, 0), DiagonalRising),
