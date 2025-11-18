@@ -69,6 +69,7 @@ fn try_grid_assemble(
 // 
 pub fn make(input: String) -> Result(Grid, Nil) {
   string.split(input, on: "\n")
+  |> list.filter(fn(x) { x != "" })
   |> list.index_map(with: fn(row, y) {
     // transform each row into a #(size_of_dict, dict)
     let row_dict = string_to_coordinates(0, y, row, dict.new())

@@ -328,9 +328,72 @@ pub fn get_all_lines_for_rectangular_grid_test() {
   assert total_lines == list.fold(lengths, 0, fn(acc, x) { acc + x })
 }
 
+pub fn line_points_test() {
+  let origin = coordinate.upcast(#(0, 0))
+  let h_end = coordinate.upcast(#(3, 0))
+  let v_end = coordinate.upcast(#(0, 3))
+  let df_end = coordinate.upcast(#(3, 3))
+
+  let h_line = line.make(origin, h_end, Horizontal)
+  let v_line = line.make(origin, v_end, Vertical)
+  let df_line = line.make(origin, df_end, DiagonalFalling)
+  let dr_line = line.make(v_end, h_end, DiagonalRising)
+
+  assert [
+      Coordinate(0, 0),
+      Coordinate(1, 0),
+      Coordinate(2, 0),
+      Coordinate(3, 0),
+    ]
+    == line.points(h_line)
+    |> yielder.to_list()
+
+  assert [
+      Coordinate(0, 0),
+      Coordinate(0, 1),
+      Coordinate(0, 2),
+      Coordinate(0, 3),
+    ]
+    == line.points(v_line)
+    |> yielder.to_list()
+
+  assert [
+      Coordinate(0, 0),
+      Coordinate(1, 1),
+      Coordinate(2, 2),
+      Coordinate(3, 3),
+    ]
+    == line.points(df_line)
+    |> yielder.to_list()
+
+  assert [
+      Coordinate(0, 3),
+      Coordinate(1, 2),
+      Coordinate(2, 1),
+      Coordinate(3, 0),
+    ]
+    == line.points(dr_line)
+    |> yielder.to_list()
+}
+
+pub fn line_window_test() {
+  let l =
+    line.make(
+      Coordinate(0, 0),
+      end: Coordinate(3, 3),
+      direction: DiagonalFalling,
+    )
+  assert [
+      [Coordinate(0, 0), Coordinate(1, 1)],
+      [Coordinate(1, 1), Coordinate(2, 2)],
+      [Coordinate(2, 2), Coordinate(3, 3)],
+    ]
+    == line.window(l, by: 2)
+}
+
 pub fn ceres_search_test() {
   assert 18
-    == option.unwrap(
+    == result.unwrap(
       ceres_search.find_all_of_pattern(ceres_search_square_grid(), "XMAS"),
       0,
     )
