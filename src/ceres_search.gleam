@@ -29,14 +29,8 @@ pub fn find_all_of_pattern(s: String, p: String) -> Result(Int, Nil) {
   case grid.make(s) {
     Error(_) -> Error(Nil)
     Ok(grid) -> {
-      let #(h, v, df, dh) = grid.lines(grid)
-      let y =
-        yielder.append(h, v)
-        |> yielder.append(df)
-        |> yielder.append(dh)
-
       Ok(
-        yielder.fold(y, from: 0, with: fn(acc, element) {
+        yielder.fold(grid.lines(grid), from: 0, with: fn(acc, element) {
           let string_windows =
             line.window(element, by: pattern_length)
             |> list.map(fn(a) { coord_list_to_string(a, on: grid) })

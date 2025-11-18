@@ -41,40 +41,40 @@ pub fn next_test() {
 
   // normal forwards top increment
   let c = EdgeCoordinate(x: 1, y: 0, edge: Top, bounds:, orientation: Forwards)
-  assert Coordinate(2, 0) == edge_coordinate.downcast(edge_coordinate.next(c))
+  assert Coordinate(2, 0) == edge_coordinate.upcast(edge_coordinate.next(c))
 
   // normal forwards bottom increment
   let c =
     EdgeCoordinate(x: 0, y: 2, edge: Bottom, bounds:, orientation: Forwards)
-  assert Coordinate(1, 2) == edge_coordinate.downcast(edge_coordinate.next(c))
+  assert Coordinate(1, 2) == edge_coordinate.upcast(edge_coordinate.next(c))
 
   // normal forwards left increment
   let c = EdgeCoordinate(x: 0, y: 1, edge: Left, bounds:, orientation: Forwards)
-  assert Coordinate(0, 2) == edge_coordinate.downcast(edge_coordinate.next(c))
+  assert Coordinate(0, 2) == edge_coordinate.upcast(edge_coordinate.next(c))
 
   // normal forwards right increment
   let c =
     EdgeCoordinate(x: 2, y: 0, edge: Right, bounds:, orientation: Forwards)
-  assert Coordinate(2, 1) == edge_coordinate.downcast(edge_coordinate.next(c))
+  assert Coordinate(2, 1) == edge_coordinate.upcast(edge_coordinate.next(c))
 
   // normal backwards top increment
   let c = EdgeCoordinate(x: 1, y: 0, edge: Top, bounds:, orientation: Backwards)
-  assert Coordinate(0, 0) == edge_coordinate.downcast(edge_coordinate.next(c))
+  assert Coordinate(0, 0) == edge_coordinate.upcast(edge_coordinate.next(c))
 
   // normal backwards bottom increment
   let c =
     EdgeCoordinate(x: 1, y: 2, edge: Bottom, bounds:, orientation: Backwards)
-  assert Coordinate(0, 2) == edge_coordinate.downcast(edge_coordinate.next(c))
+  assert Coordinate(0, 2) == edge_coordinate.upcast(edge_coordinate.next(c))
 
   // normal backwards left increment
   let c =
     EdgeCoordinate(x: 0, y: 1, edge: Left, bounds:, orientation: Backwards)
-  assert Coordinate(0, 0) == edge_coordinate.downcast(edge_coordinate.next(c))
+  assert Coordinate(0, 0) == edge_coordinate.upcast(edge_coordinate.next(c))
 
   // normal backwards right increment
   let c =
     EdgeCoordinate(x: 2, y: 1, edge: Right, bounds:, orientation: Backwards)
-  assert Coordinate(2, 0) == edge_coordinate.downcast(edge_coordinate.next(c))
+  assert Coordinate(2, 0) == edge_coordinate.upcast(edge_coordinate.next(c))
 
   // top to right transition
   let c = EdgeCoordinate(x: 2, y: 0, edge: Top, bounds:, orientation: Forwards)

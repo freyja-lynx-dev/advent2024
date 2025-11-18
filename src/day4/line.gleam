@@ -19,7 +19,7 @@ pub fn points(from l: Line) -> Yielder(Coordinate) {
   let line_slope = direction.slope(for: l.direction)
   let endplus =
     line_slope
-    |> coordinate.upcast()
+    |> coordinate.from_tuple()
     |> coordinate.add(to: l.end)
 
   yielder.unfold(from: l.origin, with: fn(c) {
@@ -29,7 +29,7 @@ pub fn points(from l: Line) -> Yielder(Coordinate) {
         Next(
           c,
           accumulator: coordinate.add(
-            this: coordinate.upcast(line_slope),
+            this: coordinate.from_tuple(line_slope),
             to: c,
           ),
         )

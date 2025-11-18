@@ -257,6 +257,6 @@ pub fn try_make_edge_coordinate(
   }
 }
 
-pub fn downcast(c: EdgeCoordinate) -> Coordinate {
+pub fn upcast(c: EdgeCoordinate) -> Coordinate {
   coordinate.make(c.x, c.y)
 }

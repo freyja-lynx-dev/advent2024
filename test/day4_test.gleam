@@ -163,7 +163,7 @@ pub fn make_edgeline_test() {
       yielder.empty(),
     )
   assert [Coordinate(1, 0), Coordinate(2, 0), Coordinate(2, 1)]
-    == list.map(yielder.to_list(edge_x), fn(x) { edge_coordinate.downcast(x) })
+    == list.map(yielder.to_list(edge_x), fn(x) { edge_coordinate.upcast(x) })
 
   let edge_y =
     result.unwrap(
@@ -174,7 +174,7 @@ pub fn make_edgeline_test() {
       yielder.empty(),
     )
   assert [Coordinate(0, 1), Coordinate(0, 2), Coordinate(1, 2)]
-    == list.map(yielder.to_list(edge_y), fn(x) { edge_coordinate.downcast(x) })
+    == list.map(yielder.to_list(edge_y), fn(x) { edge_coordinate.upcast(x) })
 }
 
 pub fn get_diagonal_falling_lines_for_square_test() {
@@ -267,7 +267,10 @@ pub fn get_all_lines_for_square_grid_test() {
   // check our math with a worked out paper example
   assert 54 == total_lines
 
-  let #(h, v, df, dr) = grid.lines(g)
+  let h = grid.get_horizontal_lines_for_grid(g)
+  let v = grid.get_vertical_lines_for_grid(g)
+  let assert Ok(df) = grid.diagonal_falling_lines(g)
+  let assert Ok(dr) = grid.diagonal_rising_lines(g)
 
   let lengths = [
     yielder.length(h),
@@ -305,7 +308,10 @@ pub fn get_all_lines_for_rectangular_grid_test() {
   // 4 + 10 + 11 + 11 -> 14 + 22 -> 36
   assert 36 == total_lines
 
-  let #(h, v, df, dr) = grid.lines(g)
+  let h = grid.get_horizontal_lines_for_grid(g)
+  let v = grid.get_vertical_lines_for_grid(g)
+  let assert Ok(df) = grid.diagonal_falling_lines(g)
+  let assert Ok(dr) = grid.diagonal_rising_lines(g)
 
   let lengths = [
     yielder.length(h),
@@ -321,10 +327,10 @@ pub fn get_all_lines_for_rectangular_grid_test() {
 }
 
 pub fn line_points_test() {
-  let origin = coordinate.upcast(#(0, 0))
-  let h_end = coordinate.upcast(#(3, 0))
-  let v_end = coordinate.upcast(#(0, 3))
-  let df_end = coordinate.upcast(#(3, 3))
+  let origin = coordinate.from_tuple(#(0, 0))
+  let h_end = coordinate.from_tuple(#(3, 0))
+  let v_end = coordinate.from_tuple(#(0, 3))
+  let df_end = coordinate.from_tuple(#(3, 3))
 
   let h_line = line.make(origin, h_end, Horizontal)
   let v_line = line.make(origin, v_end, Vertical)

@@ -1,8 +1,10 @@
 import day4/bounds.{type Bounds}
 import day4/coordinate.{type Coordinate}
-import day4/direction.{DiagonalFalling, DiagonalRising, Horizontal, Vertical}
+import day4/direction.{
+  type Direction, DiagonalFalling, DiagonalRising, Horizontal, Vertical,
+}
 import day4/edge_coordinate.{type EdgeCoordinate, Backwards, Forwards}
-import day4/line.{type Line, Line}
+import day4/line.{Line}
 import gleam/dict.{type Dict}
 import gleam/list
 import gleam/result
@@ -81,7 +83,7 @@ pub fn make(input: String) -> Result(Grid, Nil) {
   |> try_grid_assemble()
 }
 
-pub fn get_horizontal_lines_for_grid(grid: Grid) -> Yielder(Line) {
+pub fn get_horizontal_lines_for_grid(grid: Grid) -> Yielder(line.Line) {
   yielder.unfold(from: 0, with: fn(n) {
     case n {
       n if n == grid.rows -> Done
@@ -98,7 +100,7 @@ pub fn get_horizontal_lines_for_grid(grid: Grid) -> Yielder(Line) {
   })
 }
 
-pub fn get_vertical_lines_for_grid(grid: Grid) -> Yielder(Line) {
+pub fn get_vertical_lines_for_grid(grid: Grid) -> Yielder(line.Line) {
   yielder.unfold(from: 0, with: fn(n) {
     case n {
       n if n == grid.columns -> Done
@@ -121,7 +123,7 @@ fn make_bounds(from g: Grid) -> Bounds {
   bounds.make(x_bound, y_bound)
 }
 
-pub fn diagonal_falling_lines(for g: Grid) -> Result(Yielder(Line), Nil) {
+pub fn diagonal_falling_lines(for g: Grid) -> Result(Yielder(line.Line), Nil) {
   // so now that we have edge lines:
   // > make edge lines for origin and antiorigin
   // > zip the coordinate pairs together as a yielder
@@ -145,15 +147,12 @@ pub fn diagonal_falling_lines(for g: Grid) -> Result(Yielder(Line), Nil) {
       orientation: Forwards,
     ),
   )
-  // let origins_end = coordinate.make(g.columns - 2, 0)
-
-  // let ends_end = coordinate.make(g.columns - 1, 1)
 
   Ok(
     yielder.unfold(from: #(origins_start, ends_start), with: fn(coordinates) {
       let #(next_origin, next_end) = coordinates
-      let origin = edge_coordinate.downcast(next_origin)
-      let end = edge_coordinate.downcast(next_end)
+      let origin = edge_coordinate.upcast(next_origin)
+      let end = edge_coordinate.upcast(next_end)
       case coordinate.magnitude_between(origin, end) {
         // the corners are the base case and they have magnitude 0,0
         #(0, 0) -> Done
@@ -170,7 +169,7 @@ pub fn diagonal_falling_lines(for g: Grid) -> Result(Yielder(Line), Nil) {
   )
 }
 
-pub fn diagonal_rising_lines(for g: Grid) -> Result(Yielder(Line), Nil) {
+pub fn diagonal_rising_lines(for g: Grid) -> Result(Yielder(line.Line), Nil) {
   let grid_bounds = make_bounds(from: g)
 
   // in order to get the prime origin, we need the coordinate at 0,rows-2
@@ -193,8 +192,8 @@ pub fn diagonal_rising_lines(for g: Grid) -> Result(Yielder(Line), Nil) {
   Ok(
     yielder.unfold(from: #(origins_start, ends_start), with: fn(coordinates) {
       let #(next_origin, next_end) = coordinates
-      let origin = edge_coordinate.downcast(next_origin)
-      let end = edge_coordinate.downcast(next_end)
+      let origin = edge_coordinate.upcast(next_origin)
+      let end = edge_coordinate.upcast(next_end)
       case coordinate.magnitude_between(origin, end) {
         // the corners are the base case and they have magnitude 0,0
         #(0, 0) -> Done
@@ -212,26 +211,17 @@ pub fn diagonal_rising_lines(for g: Grid) -> Result(Yielder(Line), Nil) {
 }
 
 // Returns all possible lines for the given grid
-pub fn lines(
-  grid: Grid,
-) -> #(Yielder(Line), Yielder(Line), Yielder(Line), Yielder(Line)) {
+pub fn lines(grid: Grid) -> Yielder(line.Line) {
   let horizontal_lines = get_horizontal_lines_for_grid(grid)
   let vertical_lines = get_vertical_lines_for_grid(grid)
   let diagonal_falling_lines =
     result.unwrap(diagonal_falling_lines(grid), empty())
-  //echo yielder.to_list(diagonal_falling_lines)
   let diagonal_rising_lines =
     result.unwrap(diagonal_rising_lines(grid), empty())
-  //echo yielder.to_list(diagonal_rising_lines)
 
-  // todo: just return a single yielder, we don't need to know the internal
-  // representation outside of this module
-  #(
-    horizontal_lines,
-    vertical_lines,
-    diagonal_falling_lines,
-    diagonal_rising_lines,
-  )
+  yielder.append(horizontal_lines, vertical_lines)
+  |> yielder.append(diagonal_falling_lines)
+  |> yielder.append(diagonal_rising_lines)
 }
 
 // 
@@ -261,4 +251,26 @@ pub fn edge_line(
     // the happy case :)
     start, _ -> Ok(make_edge_line(from: start, to: end))
   }
+}
+
+// A subset of line guaranteed to coorespond to some grid.
+pub type GridLine {
+  GridLine(origin: EdgeCoordinate, end: EdgeCoordinate, direction: Direction)
+}
+
+// Lossless transformation of GridLine to Line
+pub fn upcast_gridline(gl: GridLine) -> line.Line {
+  line.make(
+    origin: edge_coordinate.upcast(gl.origin),
+    end: edge_coordinate.upcast(gl.end),
+    direction: gl.direction,
+  )
+}
+
+pub fn make_gridline(
+  origin a: EdgeCoordinate,
+  end b: EdgeCoordinate,
+  direction d: Direction,
+) -> GridLine {
+  GridLine(origin: a, end: b, direction: d)
 }

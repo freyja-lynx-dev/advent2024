@@ -20,7 +20,7 @@ pub fn add(this a: Coordinate, to b: Coordinate) -> Coordinate {
 }
 
 // Convert a plain tuple of ints into a Coordinate
-pub fn upcast(from t: #(Int, Int)) -> Coordinate {
+pub fn from_tuple(from t: #(Int, Int)) -> Coordinate {
   let #(x, y) = t
   Coordinate(x:, y:)
 }
