@@ -1,8 +1,6 @@
 import day4/bounds.{type Bounds}
 import day4/coordinate.{type Coordinate}
-import day4/direction.{
-  type Direction, DiagonalFalling, DiagonalRising, Horizontal, Vertical,
-}
+import day4/direction.{DiagonalFalling, DiagonalRising, Horizontal, Vertical}
 import day4/edge_coordinate.{type EdgeCoordinate, Backwards, Forwards}
 import day4/line.{Line}
 import gleam/dict.{type Dict}
@@ -210,6 +208,34 @@ pub fn diagonal_rising_lines(for g: Grid) -> Result(Yielder(line.Line), Nil) {
   )
 }
 
+pub opaque type LineView {
+  LineView(data: String, line: line.Line)
+}
+
+fn into_lineview(with line: line.Line, on g: Grid) -> LineView {
+  // we can be reasonably certain we never get invalid data :)
+  let assert Ok(data) =
+    yielder.try_fold(over: line.points(line), from: "", with: fn(str, c) {
+      case dict.get(g.grid, c) {
+        Error(_) -> Error(Nil)
+        Ok(char) -> Ok(str <> char)
+      }
+    })
+
+  LineView(data:, line:)
+}
+
+pub fn line_views(on g: Grid) -> Yielder(LineView) {
+  let lines = lines(g)
+
+  yielder.map(over: lines, with: fn(x) { into_lineview(with: x, on: g) })
+}
+
+pub fn lineview_window(of lineview: LineView, by n: Int) -> List(List(String)) {
+  string.to_graphemes(lineview.data)
+  |> list.window(by: n)
+}
+
 // Returns all possible lines for the given grid
 pub fn lines(grid: Grid) -> Yielder(line.Line) {
   let horizontal_lines = get_horizontal_lines_for_grid(grid)
@@ -224,7 +250,7 @@ pub fn lines(grid: Grid) -> Yielder(line.Line) {
   |> yielder.append(diagonal_rising_lines)
 }
 
-// 
+// // 
 fn make_edge_line(
   from start: EdgeCoordinate,
   to end: EdgeCoordinate,
@@ -251,26 +277,4 @@ pub fn edge_line(
     // the happy case :)
     start, _ -> Ok(make_edge_line(from: start, to: end))
   }
-}
-
-// A subset of line guaranteed to coorespond to some grid.
-pub type GridLine {
-  GridLine(origin: EdgeCoordinate, end: EdgeCoordinate, direction: Direction)
-}
-
-// Lossless transformation of GridLine to Line
-pub fn upcast_gridline(gl: GridLine) -> line.Line {
-  line.make(
-    origin: edge_coordinate.upcast(gl.origin),
-    end: edge_coordinate.upcast(gl.end),
-    direction: gl.direction,
-  )
-}
-
-pub fn make_gridline(
-  origin a: EdgeCoordinate,
-  end b: EdgeCoordinate,
-  direction d: Direction,
-) -> GridLine {
-  GridLine(origin: a, end: b, direction: d)
 }

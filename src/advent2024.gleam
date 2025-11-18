@@ -12,6 +12,6 @@ pub fn main() -> Nil {
   echo mem_corrupt.sum_muls_from(s)
   echo mem_corrupt.sum_do_muls_from(s)
   let assert Ok(s) = simplifile.read("day4_data")
-  echo result.unwrap(ceres_search.find_all_of_pattern(s, "XMAS"), -1)
+  echo result.unwrap(ceres_search.find_all(s, "XMAS"), -1)
   Nil
 }

@@ -392,7 +392,7 @@ pub fn line_window_test() {
 pub fn ceres_search_test() {
   assert 18
     == result.unwrap(
-      ceres_search.find_all_of_pattern(ceres_search_square_grid(), "XMAS"),
+      ceres_search.find_all(ceres_search_square_grid(), "XMAS"),
       0,
     )
 }

@@ -1,48 +1,33 @@
-import day4/coordinate.{type Coordinate}
-import day4/grid.{type Grid}
-import day4/line
+import day4/grid.{type LineView}
 import day4/pattern
-import gleam/dict
-import gleam/int
 import gleam/list
-import gleam/result
 import gleam/string
 import gleam/yielder
 
-pub fn coord_list_to_string(l: List(Coordinate), on g: Grid) -> String {
-  list.try_map(l, fn(x) { dict.get(g.grid, x) })
-  // i don't like this
-  // we can probably leverage types to prevent this unwrapping
-  // but for now lets see if it works
-  |> result.unwrap(or: ["SOMETHING IS VERY VERY WRONG!!!!"])
-  |> string.concat()
-}
-
-pub fn find_all_of_pattern(s: String, p: String) -> Result(Int, Nil) {
-  // here's how we're going to do this:
-  // - create the grid
-  // - get 4 line generators -- horizontal, vertical, diagonal falling, diagonal rising
-  // - search for the pattern in each line
-  // - accumulate instances
+fn scan(for p: String, on line: LineView) -> Int {
   let pattern = pattern.make(p)
   let pattern_length = string.length(p)
+  list.fold(
+    over: grid.lineview_window(line, by: pattern_length),
+    from: 0,
+    with: fn(acc: Int, x: List(String)) -> Int {
+      case string.concat(x) {
+        x if x == pattern.forwards -> acc + 1
+        x if x == pattern.backwards -> acc + 1
+        _ -> acc + 0
+      }
+    },
+  )
+}
+
+pub fn find_all(on s: String, of p: String) -> Result(Int, Nil) {
   case grid.make(s) {
     Error(_) -> Error(Nil)
     Ok(grid) -> {
       Ok(
-        yielder.fold(grid.lines(grid), from: 0, with: fn(acc, element) {
-          let string_windows =
-            line.window(element, by: pattern_length)
-            |> list.map(fn(a) { coord_list_to_string(a, on: grid) })
-
-          list.fold(string_windows, 0, fn(acc, x) {
-            case x {
-              x if x == pattern.forwards -> acc + 1
-              x if x == pattern.backwards -> acc + 1
-              _ -> acc + 0
-            }
-          })
-          |> int.add(acc)
+        grid.line_views(on: grid)
+        |> yielder.fold(from: 0, with: fn(acc, lv) {
+          acc + scan(for: p, on: lv)
         }),
       )
     }
