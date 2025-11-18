@@ -1,4 +1,5 @@
 import day4/coordinate.{type Coordinate}
+import day4/direction.{type Direction}
 import gleam/list
 import gleam/yielder.{type Yielder, Done, Next}
 
@@ -14,26 +15,8 @@ pub fn make(
   Line(origin: o, end: e, direction: d)
 }
 
-pub type Direction {
-  Horizontal
-  Vertical
-  DiagonalRising
-  DiagonalFalling
-}
-
-fn slope_for_direction(d: Direction) -> #(Int, Int) {
-  case d {
-    Horizontal -> #(1, 0)
-    Vertical -> #(0, 1)
-    // falling and rising are reversed as our grid perspective is
-    // top to bottom... this is a bit confusing, but i'm not gonna change it
-    DiagonalFalling -> #(1, 1)
-    DiagonalRising -> #(1, -1)
-  }
-}
-
 pub fn points(from l: Line) -> Yielder(Coordinate) {
-  let line_slope = slope_for_direction(l.direction)
+  let line_slope = direction.slope(for: l.direction)
   let endplus =
     line_slope
     |> coordinate.upcast()

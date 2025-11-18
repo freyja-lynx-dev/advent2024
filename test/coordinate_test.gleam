@@ -1,5 +1,7 @@
-import day4/coordinate.{
-  Backwards, Bottom, Coordinate, EdgeCoordinate, Forwards, Left, Right, Top,
+import day4/bounds
+import day4/coordinate.{Coordinate}
+import day4/edge_coordinate.{
+  Backwards, Bottom, EdgeCoordinate, Forwards, Left, Right, Top,
 }
 
 pub fn subtract_test() {
@@ -35,79 +37,84 @@ pub fn magnitude_test() {
 }
 
 pub fn next_test() {
-  let bounds = coordinate.make_bounds(2, 2)
+  let bounds = bounds.make(2, 2)
 
   // normal forwards top increment
-  let c = EdgeCoordinate(x: 1, y: 0, edge: Top, bounds:, direction: Forwards)
-  assert Coordinate(2, 0)
-    == coordinate.downcast_edge_coordinate(coordinate.next(c))
+  let c = EdgeCoordinate(x: 1, y: 0, edge: Top, bounds:, orientation: Forwards)
+  assert Coordinate(2, 0) == edge_coordinate.downcast(edge_coordinate.next(c))
 
   // normal forwards bottom increment
-  let c = EdgeCoordinate(x: 0, y: 2, edge: Bottom, bounds:, direction: Forwards)
-  assert Coordinate(1, 2)
-    == coordinate.downcast_edge_coordinate(coordinate.next(c))
+  let c =
+    EdgeCoordinate(x: 0, y: 2, edge: Bottom, bounds:, orientation: Forwards)
+  assert Coordinate(1, 2) == edge_coordinate.downcast(edge_coordinate.next(c))
 
   // normal forwards left increment
-  let c = EdgeCoordinate(x: 0, y: 1, edge: Left, bounds:, direction: Forwards)
-  assert Coordinate(0, 2)
-    == coordinate.downcast_edge_coordinate(coordinate.next(c))
+  let c = EdgeCoordinate(x: 0, y: 1, edge: Left, bounds:, orientation: Forwards)
+  assert Coordinate(0, 2) == edge_coordinate.downcast(edge_coordinate.next(c))
 
   // normal forwards right increment
-  let c = EdgeCoordinate(x: 2, y: 0, edge: Right, bounds:, direction: Forwards)
-  assert Coordinate(2, 1)
-    == coordinate.downcast_edge_coordinate(coordinate.next(c))
+  let c =
+    EdgeCoordinate(x: 2, y: 0, edge: Right, bounds:, orientation: Forwards)
+  assert Coordinate(2, 1) == edge_coordinate.downcast(edge_coordinate.next(c))
 
   // normal backwards top increment
-  let c = EdgeCoordinate(x: 1, y: 0, edge: Top, bounds:, direction: Backwards)
-  assert Coordinate(0, 0)
-    == coordinate.downcast_edge_coordinate(coordinate.next(c))
+  let c = EdgeCoordinate(x: 1, y: 0, edge: Top, bounds:, orientation: Backwards)
+  assert Coordinate(0, 0) == edge_coordinate.downcast(edge_coordinate.next(c))
 
   // normal backwards bottom increment
   let c =
-    EdgeCoordinate(x: 1, y: 2, edge: Bottom, bounds:, direction: Backwards)
-  assert Coordinate(0, 2)
-    == coordinate.downcast_edge_coordinate(coordinate.next(c))
+    EdgeCoordinate(x: 1, y: 2, edge: Bottom, bounds:, orientation: Backwards)
+  assert Coordinate(0, 2) == edge_coordinate.downcast(edge_coordinate.next(c))
 
   // normal backwards left increment
-  let c = EdgeCoordinate(x: 0, y: 1, edge: Left, bounds:, direction: Backwards)
-  assert Coordinate(0, 0)
-    == coordinate.downcast_edge_coordinate(coordinate.next(c))
+  let c =
+    EdgeCoordinate(x: 0, y: 1, edge: Left, bounds:, orientation: Backwards)
+  assert Coordinate(0, 0) == edge_coordinate.downcast(edge_coordinate.next(c))
 
   // normal backwards right increment
-  let c = EdgeCoordinate(x: 2, y: 1, edge: Right, bounds:, direction: Backwards)
-  assert Coordinate(2, 0)
-    == coordinate.downcast_edge_coordinate(coordinate.next(c))
+  let c =
+    EdgeCoordinate(x: 2, y: 1, edge: Right, bounds:, orientation: Backwards)
+  assert Coordinate(2, 0) == edge_coordinate.downcast(edge_coordinate.next(c))
 
   // top to right transition
-  let c = EdgeCoordinate(x: 2, y: 0, edge: Top, bounds:, direction: Forwards)
-  assert EdgeCoordinate(2, 1, Right, bounds, Forwards) == coordinate.next(c)
+  let c = EdgeCoordinate(x: 2, y: 0, edge: Top, bounds:, orientation: Forwards)
+  assert EdgeCoordinate(2, 1, Right, bounds, Forwards)
+    == edge_coordinate.next(c)
 
   // top to left transition
-  let c = EdgeCoordinate(x: 0, y: 0, edge: Top, bounds:, direction: Backwards)
-  assert EdgeCoordinate(0, 1, Left, bounds, Forwards) == coordinate.next(c)
+  let c = EdgeCoordinate(x: 0, y: 0, edge: Top, bounds:, orientation: Backwards)
+  assert EdgeCoordinate(0, 1, Left, bounds, Forwards) == edge_coordinate.next(c)
 
   // bottom to right transition
-  let c = EdgeCoordinate(x: 2, y: 2, edge: Bottom, bounds:, direction: Forwards)
-  assert EdgeCoordinate(2, 1, Right, bounds, Backwards) == coordinate.next(c)
+  let c =
+    EdgeCoordinate(x: 2, y: 2, edge: Bottom, bounds:, orientation: Forwards)
+  assert EdgeCoordinate(2, 1, Right, bounds, Backwards)
+    == edge_coordinate.next(c)
 
   // bottom to left transition
   let c =
-    EdgeCoordinate(x: 0, y: 2, edge: Bottom, bounds:, direction: Backwards)
-  assert EdgeCoordinate(0, 1, Left, bounds, Backwards) == coordinate.next(c)
+    EdgeCoordinate(x: 0, y: 2, edge: Bottom, bounds:, orientation: Backwards)
+  assert EdgeCoordinate(0, 1, Left, bounds, Backwards)
+    == edge_coordinate.next(c)
 
   // left to bottom transition
-  let c = EdgeCoordinate(x: 0, y: 2, edge: Left, bounds:, direction: Forwards)
-  assert EdgeCoordinate(1, 2, Bottom, bounds, Forwards) == coordinate.next(c)
+  let c = EdgeCoordinate(x: 0, y: 2, edge: Left, bounds:, orientation: Forwards)
+  assert EdgeCoordinate(1, 2, Bottom, bounds, Forwards)
+    == edge_coordinate.next(c)
 
   // left to top transition
-  let c = EdgeCoordinate(x: 0, y: 0, edge: Left, bounds:, direction: Backwards)
-  assert EdgeCoordinate(1, 0, Top, bounds, Forwards) == coordinate.next(c)
+  let c =
+    EdgeCoordinate(x: 0, y: 0, edge: Left, bounds:, orientation: Backwards)
+  assert EdgeCoordinate(1, 0, Top, bounds, Forwards) == edge_coordinate.next(c)
 
   // right to bottom transition
-  let c = EdgeCoordinate(x: 2, y: 2, edge: Right, bounds:, direction: Forwards)
-  assert EdgeCoordinate(1, 2, Bottom, bounds, Backwards) == coordinate.next(c)
+  let c =
+    EdgeCoordinate(x: 2, y: 2, edge: Right, bounds:, orientation: Forwards)
+  assert EdgeCoordinate(1, 2, Bottom, bounds, Backwards)
+    == edge_coordinate.next(c)
 
   // right to top transition
-  let c = EdgeCoordinate(x: 2, y: 0, edge: Right, bounds:, direction: Backwards)
-  assert EdgeCoordinate(1, 0, Top, bounds, Backwards) == coordinate.next(c)
+  let c =
+    EdgeCoordinate(x: 2, y: 0, edge: Right, bounds:, orientation: Backwards)
+  assert EdgeCoordinate(1, 0, Top, bounds, Backwards) == edge_coordinate.next(c)
 }

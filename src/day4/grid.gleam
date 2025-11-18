@@ -1,7 +1,8 @@
-import day4/coordinate.{
-  type Bounds, type Coordinate, type EdgeCoordinate, Backwards, Forwards,
-}
-import day4/line.{type Line, DiagonalFalling, DiagonalRising, Line, Vertical}
+import day4/bounds.{type Bounds}
+import day4/coordinate.{type Coordinate}
+import day4/direction.{DiagonalFalling, DiagonalRising, Horizontal, Vertical}
+import day4/edge_coordinate.{type EdgeCoordinate, Backwards, Forwards}
+import day4/line.{type Line, Line}
 import gleam/dict.{type Dict}
 import gleam/list
 import gleam/result
@@ -89,7 +90,7 @@ pub fn get_horizontal_lines_for_grid(grid: Grid) -> Yielder(Line) {
           element: Line(
             origin: coordinate.Coordinate(0, n),
             end: coordinate.Coordinate(grid.columns - 1, n),
-            direction: line.Horizontal,
+            direction: Horizontal,
           ),
           accumulator: n + 1,
         )
@@ -117,7 +118,7 @@ pub fn get_vertical_lines_for_grid(grid: Grid) -> Yielder(Line) {
 fn make_bounds(from g: Grid) -> Bounds {
   let x_bound = g.columns - 1
   let y_bound = g.rows - 1
-  coordinate.make_bounds(x_bound, y_bound)
+  bounds.make(x_bound, y_bound)
 }
 
 pub fn diagonal_falling_lines(for g: Grid) -> Result(Yielder(Line), Nil) {
@@ -131,17 +132,17 @@ pub fn diagonal_falling_lines(for g: Grid) -> Result(Yielder(Line), Nil) {
   // in order to get the prime origin, we need the coordinate at 0,rows-2
   use origins_start <- result.try(
     coordinate.make(0, g.rows - 2)
-    |> coordinate.try_make_edge_coordinate(
+    |> edge_coordinate.try_make_edge_coordinate(
       with: grid_bounds,
-      direction: Backwards,
+      orientation: Backwards,
     ),
   )
 
   use ends_start <- result.try(
     coordinate.make(1, g.rows - 1)
-    |> coordinate.try_make_edge_coordinate(
+    |> edge_coordinate.try_make_edge_coordinate(
       with: grid_bounds,
-      direction: Forwards,
+      orientation: Forwards,
     ),
   )
   // let origins_end = coordinate.make(g.columns - 2, 0)
@@ -151,8 +152,8 @@ pub fn diagonal_falling_lines(for g: Grid) -> Result(Yielder(Line), Nil) {
   Ok(
     yielder.unfold(from: #(origins_start, ends_start), with: fn(coordinates) {
       let #(next_origin, next_end) = coordinates
-      let origin = coordinate.downcast_edge_coordinate(next_origin)
-      let end = coordinate.downcast_edge_coordinate(next_end)
+      let origin = edge_coordinate.downcast(next_origin)
+      let end = edge_coordinate.downcast(next_end)
       case coordinate.magnitude_between(origin, end) {
         // the corners are the base case and they have magnitude 0,0
         #(0, 0) -> Done
@@ -160,8 +161,8 @@ pub fn diagonal_falling_lines(for g: Grid) -> Result(Yielder(Line), Nil) {
           Next(
             Line(origin: origin, end: end, direction: DiagonalFalling),
             accumulator: #(
-              coordinate.next(next_origin),
-              coordinate.next(next_end),
+              edge_coordinate.next(next_origin),
+              edge_coordinate.next(next_end),
             ),
           )
       }
@@ -175,25 +176,25 @@ pub fn diagonal_rising_lines(for g: Grid) -> Result(Yielder(Line), Nil) {
   // in order to get the prime origin, we need the coordinate at 0,rows-2
   use origins_start <- result.try(
     coordinate.make(0, 1)
-    |> coordinate.try_make_edge_coordinate(
+    |> edge_coordinate.try_make_edge_coordinate(
       with: grid_bounds,
-      direction: Forwards,
+      orientation: Forwards,
     ),
   )
 
   use ends_start <- result.try(
     coordinate.make(1, 0)
-    |> coordinate.try_make_edge_coordinate(
+    |> edge_coordinate.try_make_edge_coordinate(
       with: grid_bounds,
-      direction: Forwards,
+      orientation: Forwards,
     ),
   )
 
   Ok(
     yielder.unfold(from: #(origins_start, ends_start), with: fn(coordinates) {
       let #(next_origin, next_end) = coordinates
-      let origin = coordinate.downcast_edge_coordinate(next_origin)
-      let end = coordinate.downcast_edge_coordinate(next_end)
+      let origin = edge_coordinate.downcast(next_origin)
+      let end = edge_coordinate.downcast(next_end)
       case coordinate.magnitude_between(origin, end) {
         // the corners are the base case and they have magnitude 0,0
         #(0, 0) -> Done
@@ -201,8 +202,8 @@ pub fn diagonal_rising_lines(for g: Grid) -> Result(Yielder(Line), Nil) {
           Next(
             Line(origin: origin, end: end, direction: DiagonalRising),
             accumulator: #(
-              coordinate.next(next_origin),
-              coordinate.next(next_end),
+              edge_coordinate.next(next_origin),
+              edge_coordinate.next(next_end),
             ),
           )
       }
@@ -238,10 +239,10 @@ fn make_edge_line(
   from start: EdgeCoordinate,
   to end: EdgeCoordinate,
 ) -> Yielder(EdgeCoordinate) {
-  let end_plus = coordinate.next(end)
+  let end_plus = edge_coordinate.next(end)
   echo end_plus
   yielder.unfold(from: start, with: fn(cur) {
-    let next_coordinate = coordinate.next(cur)
+    let next_coordinate = edge_coordinate.next(cur)
     case next_coordinate {
       c if c == end_plus -> Done
       c -> Next(element: cur, accumulator: c)
@@ -253,7 +254,7 @@ pub fn edge_line(
   from a: EdgeCoordinate,
   to b: EdgeCoordinate,
 ) -> Result(Yielder(EdgeCoordinate), Nil) {
-  let end = coordinate.next(b)
+  let end = edge_coordinate.next(b)
   case a, b {
     // if the coordinates are the same, it doesn't make sense to make an edgeline
     _, _ if a == b -> Error(Nil)

@@ -1,17 +1,13 @@
 import ceres_search
-import day4/coordinate.{
-  type Coordinate, type EdgeCoordinate, Backwards, Bottom, Coordinate,
-  EdgeCoordinate, Forwards, Left, Right, Top,
-}
-import day4/grid.{type Grid, Grid}
-import day4/line.{
-  type Line, DiagonalFalling, DiagonalRising, Horizontal, Line, Vertical,
-}
-import day4/pattern.{type Pattern, Pattern}
+import day4/bounds
+import day4/coordinate.{type Coordinate, Coordinate}
+import day4/direction.{DiagonalFalling, DiagonalRising, Horizontal, Vertical}
+import day4/edge_coordinate.{Bottom, EdgeCoordinate, Forwards, Left, Right, Top}
+import day4/grid.{Grid}
+import day4/line.{Line}
 import gleam/dict.{type Dict}
 import gleam/int
 import gleam/list
-import gleam/option
 import gleam/result
 import gleam/yielder
 
@@ -161,28 +157,24 @@ pub fn make_edgeline_test() {
   let edge_x =
     result.unwrap(
       grid.edge_line(
-        from: EdgeCoordinate(1, 0, Top, coordinate.make_bounds(2, 2), Forwards),
-        to: EdgeCoordinate(2, 1, Right, coordinate.make_bounds(2, 2), Forwards),
+        from: EdgeCoordinate(1, 0, Top, bounds.make(2, 2), Forwards),
+        to: EdgeCoordinate(2, 1, Right, bounds.make(2, 2), Forwards),
       ),
       yielder.empty(),
     )
   assert [Coordinate(1, 0), Coordinate(2, 0), Coordinate(2, 1)]
-    == list.map(yielder.to_list(edge_x), fn(x) {
-      coordinate.downcast_edge_coordinate(x)
-    })
+    == list.map(yielder.to_list(edge_x), fn(x) { edge_coordinate.downcast(x) })
 
   let edge_y =
     result.unwrap(
       grid.edge_line(
-        from: EdgeCoordinate(0, 1, Left, coordinate.make_bounds(2, 2), Forwards),
-        to: EdgeCoordinate(1, 2, Bottom, coordinate.make_bounds(2, 2), Forwards),
+        from: EdgeCoordinate(0, 1, Left, bounds.make(2, 2), Forwards),
+        to: EdgeCoordinate(1, 2, Bottom, bounds.make(2, 2), Forwards),
       ),
       yielder.empty(),
     )
   assert [Coordinate(0, 1), Coordinate(0, 2), Coordinate(1, 2)]
-    == list.map(yielder.to_list(edge_y), fn(x) {
-      coordinate.downcast_edge_coordinate(x)
-    })
+    == list.map(yielder.to_list(edge_y), fn(x) { edge_coordinate.downcast(x) })
 }
 
 pub fn get_diagonal_falling_lines_for_square_test() {
