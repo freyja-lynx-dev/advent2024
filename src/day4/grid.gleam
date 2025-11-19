@@ -81,34 +81,34 @@ pub fn make(input: String) -> Result(Grid, Nil) {
   |> try_grid_assemble()
 }
 
-pub fn get_horizontal_lines_for_grid(grid: Grid) -> Yielder(line.Line) {
+pub fn get_horizontal_lines_for_grid(grid: Grid) -> Yielder(GridLine) {
   yielder.unfold(from: 0, with: fn(n) {
     case n {
       n if n == grid.rows -> Done
       n ->
         Next(
-          element: Line(
+          element: GridLine(Line(
             origin: coordinate.Coordinate(0, n),
             end: coordinate.Coordinate(grid.columns - 1, n),
             direction: Horizontal,
-          ),
+          )),
           accumulator: n + 1,
         )
     }
   })
 }
 
-pub fn get_vertical_lines_for_grid(grid: Grid) -> Yielder(line.Line) {
+pub fn get_vertical_lines_for_grid(grid: Grid) -> Yielder(GridLine) {
   yielder.unfold(from: 0, with: fn(n) {
     case n {
       n if n == grid.columns -> Done
       n ->
         Next(
-          element: Line(
+          element: GridLine(Line(
             origin: coordinate.Coordinate(n, 0),
             end: coordinate.Coordinate(n, grid.columns - 1),
             direction: Vertical,
-          ),
+          )),
           accumulator: n + 1,
         )
     }
@@ -121,7 +121,7 @@ fn make_bounds(from g: Grid) -> Bounds {
   bounds.make(x_bound, y_bound)
 }
 
-pub fn diagonal_falling_lines(for g: Grid) -> Result(Yielder(line.Line), Nil) {
+pub fn diagonal_falling_lines(for g: Grid) -> Result(Yielder(GridLine), Nil) {
   // so now that we have edge lines:
   // > make edge lines for origin and antiorigin
   // > zip the coordinate pairs together as a yielder
@@ -156,7 +156,7 @@ pub fn diagonal_falling_lines(for g: Grid) -> Result(Yielder(line.Line), Nil) {
         #(0, 0) -> Done
         #(_, _) ->
           Next(
-            Line(origin: origin, end: end, direction: DiagonalFalling),
+            GridLine(Line(origin: origin, end: end, direction: DiagonalFalling)),
             accumulator: #(
               edge_coordinate.next(next_origin),
               edge_coordinate.next(next_end),
@@ -167,7 +167,7 @@ pub fn diagonal_falling_lines(for g: Grid) -> Result(Yielder(line.Line), Nil) {
   )
 }
 
-pub fn diagonal_rising_lines(for g: Grid) -> Result(Yielder(line.Line), Nil) {
+pub fn diagonal_rising_lines(for g: Grid) -> Result(Yielder(GridLine), Nil) {
   let grid_bounds = make_bounds(from: g)
 
   // in order to get the prime origin, we need the coordinate at 0,rows-2
@@ -197,7 +197,7 @@ pub fn diagonal_rising_lines(for g: Grid) -> Result(Yielder(line.Line), Nil) {
         #(0, 0) -> Done
         #(_, _) ->
           Next(
-            Line(origin: origin, end: end, direction: DiagonalRising),
+            GridLine(Line(origin: origin, end: end, direction: DiagonalRising)),
             accumulator: #(
               edge_coordinate.next(next_origin),
               edge_coordinate.next(next_end),
@@ -208,36 +208,52 @@ pub fn diagonal_rising_lines(for g: Grid) -> Result(Yielder(line.Line), Nil) {
   )
 }
 
+/// A line that was created based on some grid
+///
+/// If a GridLine is made from some grid, and you don't mix
+/// Grids and their associated lines, you can be reasonably certain
+/// that you will never get invalid Lines (lines with nonexistent data).
+/// 
+pub type GridLine {
+  GridLine(line: line.Line)
+}
+
+/// The data represented by a line on some grid.
 pub opaque type LineView {
-  LineView(data: String, line: line.Line)
+  LineView(data: String, gridline: GridLine)
 }
 
-fn into_lineview(with line: line.Line, on g: Grid) -> LineView {
-  // we can be reasonably certain we never get invalid data :)
+fn into_lineview(with gridline: GridLine, on g: Grid) -> LineView {
   let assert Ok(data) =
-    yielder.try_fold(over: line.points(line), from: "", with: fn(str, c) {
-      case dict.get(g.grid, c) {
-        Error(_) -> Error(Nil)
-        Ok(char) -> Ok(str <> char)
-      }
-    })
+    yielder.try_fold(
+      over: line.points(gridline.line),
+      from: "",
+      with: fn(str, c) {
+        case dict.get(g.grid, c) {
+          Error(_) -> Error(Nil)
+          Ok(char) -> Ok(str <> char)
+        }
+      },
+    )
 
-  LineView(data:, line:)
+  LineView(data:, gridline:)
 }
 
+/// Get a LineView for each line on a grid
 pub fn line_views(on g: Grid) -> Yielder(LineView) {
   let lines = lines(g)
 
   yielder.map(over: lines, with: fn(x) { into_lineview(with: x, on: g) })
 }
 
+/// Returns a list of sliding windows for a given line
 pub fn lineview_window(of lineview: LineView, by n: Int) -> List(List(String)) {
   string.to_graphemes(lineview.data)
   |> list.window(by: n)
 }
 
 // Returns all possible lines for the given grid
-pub fn lines(grid: Grid) -> Yielder(line.Line) {
+pub fn lines(grid: Grid) -> Yielder(GridLine) {
   let horizontal_lines = get_horizontal_lines_for_grid(grid)
   let vertical_lines = get_vertical_lines_for_grid(grid)
   let diagonal_falling_lines =
@@ -250,7 +266,6 @@ pub fn lines(grid: Grid) -> Yielder(line.Line) {
   |> yielder.append(diagonal_rising_lines)
 }
 
-// // 
 fn make_edge_line(
   from start: EdgeCoordinate,
   to end: EdgeCoordinate,
@@ -266,6 +281,7 @@ fn make_edge_line(
   })
 }
 
+/// Get all the points between (inclusive) of two points on a Grid's edges
 pub fn edge_line(
   from a: EdgeCoordinate,
   to b: EdgeCoordinate,

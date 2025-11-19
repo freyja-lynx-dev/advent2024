@@ -3,7 +3,7 @@ import day4/bounds
 import day4/coordinate.{type Coordinate, Coordinate}
 import day4/direction.{DiagonalFalling, DiagonalRising, Horizontal, Vertical}
 import day4/edge_coordinate.{Bottom, EdgeCoordinate, Forwards, Left, Right, Top}
-import day4/grid.{Grid}
+import day4/grid.{Grid, GridLine}
 import day4/line.{Line}
 import gleam/dict.{type Dict}
 import gleam/int
@@ -98,9 +98,9 @@ pub fn get_horizontal_lines_test() {
     |> yielder.to_list()
 
   assert [
-      Line(Coordinate(0, 0), Coordinate(2, 0), Horizontal),
-      Line(Coordinate(0, 1), Coordinate(2, 1), Horizontal),
-      Line(Coordinate(0, 2), Coordinate(2, 2), Horizontal),
+      GridLine(Line(Coordinate(0, 0), Coordinate(2, 0), Horizontal)),
+      GridLine(Line(Coordinate(0, 1), Coordinate(2, 1), Horizontal)),
+      GridLine(Line(Coordinate(0, 2), Coordinate(2, 2), Horizontal)),
     ]
     == lines
 }
@@ -113,9 +113,9 @@ pub fn get_vertical_lines_test() {
     |> yielder.to_list()
 
   assert [
-      Line(Coordinate(0, 0), Coordinate(0, 2), Vertical),
-      Line(Coordinate(1, 0), Coordinate(1, 2), Vertical),
-      Line(Coordinate(2, 0), Coordinate(2, 2), Vertical),
+      GridLine(Line(Coordinate(0, 0), Coordinate(0, 2), Vertical)),
+      GridLine(Line(Coordinate(1, 0), Coordinate(1, 2), Vertical)),
+      GridLine(Line(Coordinate(2, 0), Coordinate(2, 2), Vertical)),
     ]
     == lines
 }
@@ -184,9 +184,9 @@ pub fn get_diagonal_falling_lines_for_square_test() {
   let lines = yielder.to_list(lines)
 
   assert [
-      Line(Coordinate(0, 1), Coordinate(1, 2), DiagonalFalling),
-      Line(Coordinate(0, 0), Coordinate(2, 2), DiagonalFalling),
-      Line(Coordinate(1, 0), Coordinate(2, 1), DiagonalFalling),
+      GridLine(Line(Coordinate(0, 1), Coordinate(1, 2), DiagonalFalling)),
+      GridLine(Line(Coordinate(0, 0), Coordinate(2, 2), DiagonalFalling)),
+      GridLine(Line(Coordinate(1, 0), Coordinate(2, 1), DiagonalFalling)),
     ]
     == lines
 }
@@ -198,9 +198,9 @@ pub fn get_diagonal_rising_lines_for_square_test() {
   let lines = yielder.to_list(lines)
 
   assert [
-      Line(Coordinate(0, 1), Coordinate(1, 0), DiagonalRising),
-      Line(Coordinate(0, 2), Coordinate(2, 0), DiagonalRising),
-      Line(Coordinate(1, 2), Coordinate(2, 1), DiagonalRising),
+      GridLine(Line(Coordinate(0, 1), Coordinate(1, 0), DiagonalRising)),
+      GridLine(Line(Coordinate(0, 2), Coordinate(2, 0), DiagonalRising)),
+      GridLine(Line(Coordinate(1, 2), Coordinate(2, 1), DiagonalRising)),
     ]
     == lines
 }
@@ -212,17 +212,17 @@ pub fn get_diagonal_falling_lines_for_rectangle_test() {
   let lines = yielder.to_list(lines)
 
   assert [
-      Line(Coordinate(0, 2), Coordinate(1, 3), DiagonalFalling),
-      Line(Coordinate(0, 1), Coordinate(2, 3), DiagonalFalling),
-      Line(Coordinate(0, 0), Coordinate(3, 3), DiagonalFalling),
-      Line(Coordinate(1, 0), Coordinate(4, 3), DiagonalFalling),
-      Line(Coordinate(2, 0), Coordinate(5, 3), DiagonalFalling),
-      Line(Coordinate(3, 0), Coordinate(6, 3), DiagonalFalling),
-      Line(Coordinate(4, 0), Coordinate(7, 3), DiagonalFalling),
-      Line(Coordinate(5, 0), Coordinate(8, 3), DiagonalFalling),
-      Line(Coordinate(6, 0), Coordinate(9, 3), DiagonalFalling),
-      Line(Coordinate(7, 0), Coordinate(9, 2), DiagonalFalling),
-      Line(Coordinate(8, 0), Coordinate(9, 1), DiagonalFalling),
+      GridLine(Line(Coordinate(0, 2), Coordinate(1, 3), DiagonalFalling)),
+      GridLine(Line(Coordinate(0, 1), Coordinate(2, 3), DiagonalFalling)),
+      GridLine(Line(Coordinate(0, 0), Coordinate(3, 3), DiagonalFalling)),
+      GridLine(Line(Coordinate(1, 0), Coordinate(4, 3), DiagonalFalling)),
+      GridLine(Line(Coordinate(2, 0), Coordinate(5, 3), DiagonalFalling)),
+      GridLine(Line(Coordinate(3, 0), Coordinate(6, 3), DiagonalFalling)),
+      GridLine(Line(Coordinate(4, 0), Coordinate(7, 3), DiagonalFalling)),
+      GridLine(Line(Coordinate(5, 0), Coordinate(8, 3), DiagonalFalling)),
+      GridLine(Line(Coordinate(6, 0), Coordinate(9, 3), DiagonalFalling)),
+      GridLine(Line(Coordinate(7, 0), Coordinate(9, 2), DiagonalFalling)),
+      GridLine(Line(Coordinate(8, 0), Coordinate(9, 1), DiagonalFalling)),
     ]
     == lines
 }
@@ -234,17 +234,17 @@ pub fn get_diagonal_rising_lines_for_rectangle_test() {
   let lines = yielder.to_list(lines)
 
   assert [
-      Line(Coordinate(0, 1), Coordinate(1, 0), DiagonalRising),
-      Line(Coordinate(0, 2), Coordinate(2, 0), DiagonalRising),
-      Line(Coordinate(0, 3), Coordinate(3, 0), DiagonalRising),
-      Line(Coordinate(1, 3), Coordinate(4, 0), DiagonalRising),
-      Line(Coordinate(2, 3), Coordinate(5, 0), DiagonalRising),
-      Line(Coordinate(3, 3), Coordinate(6, 0), DiagonalRising),
-      Line(Coordinate(4, 3), Coordinate(7, 0), DiagonalRising),
-      Line(Coordinate(5, 3), Coordinate(8, 0), DiagonalRising),
-      Line(Coordinate(6, 3), Coordinate(9, 0), DiagonalRising),
-      Line(Coordinate(7, 3), Coordinate(9, 1), DiagonalRising),
-      Line(Coordinate(8, 3), Coordinate(9, 2), DiagonalRising),
+      GridLine(Line(Coordinate(0, 1), Coordinate(1, 0), DiagonalRising)),
+      GridLine(Line(Coordinate(0, 2), Coordinate(2, 0), DiagonalRising)),
+      GridLine(Line(Coordinate(0, 3), Coordinate(3, 0), DiagonalRising)),
+      GridLine(Line(Coordinate(1, 3), Coordinate(4, 0), DiagonalRising)),
+      GridLine(Line(Coordinate(2, 3), Coordinate(5, 0), DiagonalRising)),
+      GridLine(Line(Coordinate(3, 3), Coordinate(6, 0), DiagonalRising)),
+      GridLine(Line(Coordinate(4, 3), Coordinate(7, 0), DiagonalRising)),
+      GridLine(Line(Coordinate(5, 3), Coordinate(8, 0), DiagonalRising)),
+      GridLine(Line(Coordinate(6, 3), Coordinate(9, 0), DiagonalRising)),
+      GridLine(Line(Coordinate(7, 3), Coordinate(9, 1), DiagonalRising)),
+      GridLine(Line(Coordinate(8, 3), Coordinate(9, 2), DiagonalRising)),
     ]
     == lines
 }
